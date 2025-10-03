@@ -1,0 +1,93 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "🚀 FastAPI Debug Server",
+            "type": "python",
+            "request": "launch",
+            "program": "${workspaceFolder}/manage.py",
+            "args": ["debug", "--port", "8000"],
+            "console": "integratedTerminal",
+            "cwd": "${workspaceFolder}",
+            "env": {
+                "PYTHONPATH": "${workspaceFolder}",
+                "DEBUG": "true",
+                "LOG_LEVEL": "DEBUG",
+                "ENVIRONMENT": "development"
+            },
+            "justMyCode": false,
+            "gevent": false,
+            "subProcess": true
+        },
+        {
+            "name": "🐛 FastAPI Debug (Wait for Attach)",
+            "type": "python",
+            "request": "launch",
+            "program": "${workspaceFolder}/manage.py",
+            "args": ["debug", "--port", "8000", "--wait"],
+            "console": "integratedTerminal",
+            "cwd": "${workspaceFolder}",
+            "env": {
+                "PYTHONPATH": "${workspaceFolder}",
+                "DEBUG": "true",
+                "LOG_LEVEL": "DEBUG",
+                "ENVIRONMENT": "development"
+            },
+            "justMyCode": false,
+            "gevent": false,
+            "subProcess": true
+        },
+        {
+            "name": "💥 FastAPI Debug (PDB on Exceptions)",
+            "type": "python",
+            "request": "launch",
+            "program": "${workspaceFolder}/manage.py",
+            "args": ["debug", "--port", "8000", "--pdb"],
+            "console": "integratedTerminal",
+            "cwd": "${workspaceFolder}",
+            "env": {
+                "PYTHONPATH": "${workspaceFolder}",
+                "DEBUG": "true",
+                "LOG_LEVEL": "DEBUG",
+                "ENVIRONMENT": "development"
+            },
+            "justMyCode": false,
+            "gevent": false,
+            "subProcess": true
+        },
+        {
+            "name": "📡 Attach to Remote Debugger",
+            "type": "python",
+            "request": "attach",
+            "connect": {
+                "host": "localhost",
+                "port": 5678
+            },
+            "pathMappings": [
+                {
+                    "localRoot": "${workspaceFolder}",
+                    "remoteRoot": "."
+                }
+            ],
+            "justMyCode": false
+        },
+        {
+            "name": "🔧 FastAPI Regular Run (No Debug)",
+            "type": "python",
+            "request": "launch",
+            "program": "${workspaceFolder}/manage.py",
+            "args": ["run", "--port", "8000", "--reload"],
+            "console": "integratedTerminal",
+            "cwd": "${workspaceFolder}",
+            "env": {
+                "PYTHONPATH": "${workspaceFolder}",
+                "DEBUG": "true",
+                "LOG_LEVEL": "DEBUG",
+                "ENVIRONMENT": "development"
+            },
+            "justMyCode": false,
+            "gevent": false,
+            "subProcess": true
+        }
+    ]
+}

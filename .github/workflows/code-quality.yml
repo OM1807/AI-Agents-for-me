@@ -1,0 +1,134 @@
+name: Code Quality
+
+on:
+  push:
+    branches: [main, dev]
+    paths:
+      - "apps/api/**"
+      - ".github/workflows/code-quality.yml"
+  pull_request:
+    branches: [main, dev]
+    paths:
+      - "apps/api/**"
+      - ".github/workflows/code-quality.yml"
+
+# Explicit permissions for GITHUB_TOKEN
+permissions:
+  contents: read
+  pull-requests: read
+
+# Cancel previous workflow runs for the same branch
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  changes:
+    runs-on: ubuntu-latest
+    outputs:
+      api: ${{ steps.changes.outputs.api }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dorny/paths-filter@v3
+        id: changes
+        with:
+          filters: |
+            api:
+              - 'apps/api/**'
+
+  api-code-quality:
+    needs: changes
+    if: ${{ needs.changes.outputs.api == 'true' }}
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ["3.11"]
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Install Poetry
+        uses: snok/install-poetry@v1
+        with:
+          version: latest
+          virtualenvs-create: true
+          virtualenvs-in-project: true
+          installer-parallel: true
+
+      - name: Load cached venv
+        id: cached-poetry-dependencies
+        uses: actions/cache@v4
+        with:
+          path: apps/api/.venv
+          key: venv-${{ runner.os }}-${{ steps.setup-python.outputs.python-version }}-${{ hashFiles('**/poetry.lock') }}
+
+      - name: Install API dependencies
+        if: steps.cached-poetry-dependencies.outputs.cache-hit != 'true'
+        working-directory: apps/api
+        run: poetry install --no-interaction --no-root
+
+      - name: Install API project
+        working-directory: apps/api
+        run: poetry install --no-interaction
+
+      - name: Run Ruff linting
+        working-directory: apps/api
+        run: |
+          echo "🔍 Running Ruff linting..."
+          poetry run ruff check app/ --output-format=github
+
+      - name: Run Ruff formatting check
+        working-directory: apps/api
+        run: |
+          echo "📏 Checking Ruff formatting..."
+          poetry run ruff format app/ --check
+
+      - name: Run Black formatting check
+        working-directory: apps/api
+        run: |
+          echo "🖤 Checking Black formatting..."
+          poetry run black app/ --check --diff
+
+      - name: Run isort import sorting check
+        working-directory: apps/api
+        run: |
+          echo "📚 Checking import sorting..."
+          poetry run isort app/ --check-only --diff
+
+      - name: Run MyPy type checking
+        working-directory: apps/api
+        run: |
+          echo "🔍 Running MyPy type checking..."
+          poetry run mypy app/
+
+      - name: Run tests with coverage
+        working-directory: apps/api
+        run: |
+          echo "🧪 Running tests with coverage..."
+          poetry run pytest --cov=app --cov-report=xml --cov-report=term-missing --cov-fail-under=85
+
+      - name: Upload coverage reports to Codecov
+        if: matrix.python-version == '3.11'
+        uses: codecov/codecov-action@v3
+        with:
+          file: apps/api/coverage.xml
+          flags: api
+          name: codecov-api
+          fail_ci_if_error: false
+
+      - name: Code Quality Summary
+        if: always()
+        run: |
+          echo "## 📊 Code Quality Results" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "✅ **Linting**: Ruff checks completed" >> $GITHUB_STEP_SUMMARY
+          echo "✅ **Formatting**: Black & isort checks completed" >> $GITHUB_STEP_SUMMARY  
+          echo "✅ **Type Checking**: MyPy validation completed" >> $GITHUB_STEP_SUMMARY
+          echo "✅ **Testing**: Pytest with coverage completed" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "🎯 **Configuration**: 120-character line length, Python 3.11+" >> $GITHUB_STEP_SUMMARY

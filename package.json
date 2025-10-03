@@ -1,0 +1,60 @@
+{
+  "name": "sdlc-agents",
+  "version": "1.0.0",
+  "private": true,
+  "description": "SDLC Agents - FastAPI + Next.js Monorepo with Claude Integration",
+  "scripts": {
+    "dev": "concurrently \"pnpm run dev:api\" \"pnpm run dev:web\"",
+    "dev:web": "pnpm --filter @sdlc-agents/web dev",
+    "dev:api": "cd apps/api && make run HOST=0.0.0.0 PORT=8000 RELOAD=1",
+    "build": "turbo run build",
+    "build:web": "pnpm --filter @sdlc-agents/web build",
+    "build:ci": "cd apps/web && npm ci && npm run build",
+    "test": "turbo run test",
+    "test:api": "cd apps/api && make test",
+    "test:api:cov": "cd apps/api && make test",
+    "test:web": "pnpm --filter @sdlc-agents/web test",
+    "format:api": "cd apps/api && make format",
+    "lint": "turbo run lint",
+    "lint:api": "cd apps/api && make lint",
+    "lint:web": "pnpm --filter @sdlc-agents/web lint",
+    "type-check": "turbo run type-check",
+    "type-check:web": "pnpm --filter @sdlc-agents/web type-check",
+    "docker:up": "docker-compose up -d",
+    "docker:down": "docker-compose down",
+    "docker:build": "docker-compose build",
+    "docker:logs": "docker-compose logs -f",
+    "docker:logs:api": "docker-compose logs -f api",
+    "docker:logs:web": "docker-compose logs -f web",
+    "setup:env": "cp .env.example .env && echo 'Environment file created! Please edit .env to configure your settings.'",
+    "setup": "pnpm install && pnpm run install:api && pnpm run setup:env",
+    "deploy:railway": "cd apps/api && railway up",
+    "railway:init": "cd apps/api && railway init",
+    "railway:domain": "cd apps/api && railway domain",
+    "railway:logs": "cd apps/api && railway logs",
+    "railway:status": "cd apps/api && railway status"
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.0",
+    "turbo": "^1.10.0"
+  },
+  "packageManager": "pnpm@8.6.0",
+  "engines": {
+    "node": ">=18.0.0",
+    "pnpm": ">=8.0.0",
+    "python": ">=3.11.0"
+  },
+  "keywords": [
+    "fastapi",
+    "nextjs",
+    "monorepo",
+    "claude",
+    "ai",
+    "streaming",
+    "typescript",
+    "python",
+    "poetry"
+  ],
+  "author": "SDLC Agents Team",
+  "license": "MIT"
+}

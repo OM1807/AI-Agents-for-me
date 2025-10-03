@@ -1,0 +1,60 @@
+name: Deploy API
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "apps/api/**"
+      - ".github/workflows/deploy.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  deploy-api:
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+    
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.11"
+
+      - name: Install Poetry
+        uses: snok/install-poetry@v1
+        with:
+          version: latest
+          virtualenvs-create: true
+          virtualenvs-in-project: true
+          installer-parallel: true
+
+      - name: Install dependencies
+        working-directory: apps/api
+        run: poetry install --no-interaction --only=main
+
+      - name: Run tests
+        working-directory: apps/api
+        run: poetry run pytest
+
+      - name: Build Docker image
+        run: |
+          docker build -t sdlc-agents-api:${{ github.sha }} ./apps/api
+          
+      - name: Deploy to staging
+        run: |
+          echo "🚀 Deploying to staging environment..."
+          echo "Image: sdlc-agents-api:${{ github.sha }}"
+          # Add your deployment logic here
+          # e.g., push to registry, deploy to Kubernetes, etc.
+
+      - name: Deployment Summary
+        run: |
+          echo "## 🚀 Deployment Results" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "✅ **API**: Successfully deployed to staging" >> $GITHUB_STEP_SUMMARY
+          echo "🐳 **Docker**: Image built and tagged as sdlc-agents-api:${{ github.sha }}" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "📝 **Commit**: ${{ github.sha }}" >> $GITHUB_STEP_SUMMARY

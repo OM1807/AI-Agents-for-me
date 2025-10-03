@@ -1,0 +1,75 @@
+services:
+  web:
+    build:
+      context: ./apps/web
+      dockerfile: Dockerfile
+    ports:
+      - "3000:3000"
+    env_file:
+      - ./apps/web/.env
+    environment:
+      - NEXT_PUBLIC_API_URL=http://localhost:8000/api/v1
+    depends_on:
+      - api
+    restart: always
+    networks:
+      - sdlc_agents_network
+
+  api:
+    build:
+      context: ./apps/api
+      dockerfile: Dockerfile
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./apps/api:/app
+    env_file:
+      - ./apps/api/.env
+    environment:
+      # Startup configuration
+      - STARTUP_LOCK_ID=424242
+      - DB_CONNECT_MAX_RETRIES=30
+      - DB_CONNECT_DELAY_SECONDS=2.0
+      - DATABASE_URL=postgresql+asyncpg://postgres:postgres@host.docker.internal:5433/sdlc_agents
+      - AGENTS_DIR=/app/workspaces/
+    depends_on:
+      postgres:
+        condition: service_healthy
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    networks:
+      - sdlc_agents_network
+
+  postgres:
+    image: postgres:15-alpine
+    container_name: sdlc_agents_postgres
+    environment:
+      POSTGRES_DB: sdlc_agents
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_INITDB_ARGS: "--locale=C.UTF-8"
+      LC_ALL: C.UTF-8
+      LANG: C.UTF-8
+    ports:
+      - "5433:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d sdlc_agents"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - sdlc_agents_network
+
+volumes:
+  postgres_data:
+
+networks:
+  sdlc_agents_network:
+    driver: bridge

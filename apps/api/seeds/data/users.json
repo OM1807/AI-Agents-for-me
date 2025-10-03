@@ -1,0 +1,26 @@
+[
+  {
+    "name": "SDLCAgents Admin",
+    "email": "admin@rsystems.com",
+    "provider": "PASS",
+    "encrypted_password": "vI97S2Q0gntW+ZAgbF/Kaw=="
+  },
+  {
+    "name": "SDLCAgents Developer",
+    "email": "dev@rsystems.com",
+    "provider": "PASS",
+    "encrypted_password": "5Gt+QNgnMT7qHxldhyj1lGMzEhEDV/56feC+8gaRbRI="
+  },
+  {
+    "name": "SDLCAgents QA",
+    "email": "qa@rsystems.com",
+    "provider": "PASS",
+    "encrypted_password": "NZLXrEatkfy+3N0gU2bhcg=="
+  },
+  {
+    "name": "SDLCAgents Analyst",
+    "email": "analyst@rsystems.com",
+    "provider": "PASS",
+    "encrypted_password": "cwAlaPvxUa9Xp/J4CvBtxS84UgWMcHgEd3kcKaFR290="
+  }
+]

@@ -1,0 +1,711 @@
+[
+  {
+    "name": "Code Analysis Agent",
+    "description": "Automatically generates comprehensive documentation for codebases including API docs, README files, and inline code comments. Supports multiple programming languages and documentation formats.",
+    "identifier": "CODE_ANALYSIS",
+    "module": "DEVELOPMENT",
+    "tags": [
+      "documentation",
+      "automation",
+      "code_analysis",
+      "multi_language"
+    ],
+    "is_active": true,
+    "custom_properties_schema": {
+      "type": "object",
+      "properties": {
+        "github_repos": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "object",
+            "properties": {
+              "url": {
+                "type": "string",
+                "minLength": 1
+              },
+              "branch": {
+                "type": "string",
+                "minLength": 1
+              }
+            },
+            "required": [
+              "url",
+              "branch"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "docs": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "provider": {
+                "type": "string"
+              },
+              "id": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "provider",
+              "id"
+            ],
+            "additionalProperties": true
+          },
+          "default": []
+        },
+        "contents_to_include": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "enum": [
+              "findings",
+              "architecture",
+              "readme",
+              "api_docs"
+            ]
+          },
+          "default": []
+        },
+        "analysis_type": {
+          "type": "string",
+          "enum": [
+            "deep",
+            "basic"
+          ],
+          "default": "basic"
+        }
+      },
+      "required": [
+        "github_repos"
+      ]
+    }
+  },
+  {
+    "name": "Test Case Generation Agent",
+    "description": "Generates comprehensive test cases including unit tests, integration tests, and end-to-end tests. Analyzes code structure and creates test scenarios covering edge cases and error conditions.",
+    "identifier": "TEST_CASE_GENERATION",
+    "module": "QUALITY_ASSURANCE",
+    "tags": [
+      "testing",
+      "automation",
+      "quality_assurance",
+      "coverage"
+    ],
+    "is_active": true,
+    "custom_properties_schema": {
+      "test_framework": {
+        "type": "string",
+        "enum": [
+          "jest",
+          "pytest",
+          "junit",
+          "mocha",
+          "rspec"
+        ],
+        "default": "pytest"
+      },
+      "coverage_threshold": {
+        "type": "number",
+        "minimum": 70,
+        "maximum": 100,
+        "default": 80
+      },
+      "include_mocks": {
+        "type": "boolean",
+        "default": true
+      },
+      "test_types": {
+        "type": "array",
+        "items": {
+          "type": "string",
+          "enum": [
+            "unit",
+            "integration",
+            "e2e"
+          ]
+        },
+        "default": [
+          "unit",
+          "integration"
+        ]
+      }
+    }
+  },
+  {
+    "name": "Requirements to Tickets Agent",
+    "description": "Converts requirements documents (PRDs, user stories, specifications) into structured JIRA tickets.",
+    "identifier": "REQUIREMENTS_TO_TICKETS",
+    "module": "PROJECT_MANAGEMENT",
+    "tags": [
+      "requirements",
+      "tickets",
+      "project_management",
+      "agile",
+      "backlog_management"
+    ],
+    "is_active": true,
+    "custom_properties_schema": {
+      "type": "object",
+      "properties": {
+        "inputs": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "object",
+            "properties": {
+              "type": {
+                "type": "string",
+                "enum": [
+                  "epic",
+                  "story",
+                  "document"
+                ]
+              },
+              "provider": {
+                "type": "string",
+                "enum": [
+                  "Jira",
+                  "Notion",
+                  "Confluence",
+                  "File"
+                ]
+              },
+              "keys": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "ids": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "urls": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "names": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              }
+            },
+            "required": [
+              "type",
+              "provider"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "docs": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "provider": {
+                "type": "string",
+                "enum": [
+                  "Notion",
+                  "Confluence",
+                  "File",
+                  "Jira"
+                ]
+              },
+              "ids": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "urls": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "names": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              }
+            },
+            "required": [
+              "provider"
+            ],
+            "additionalProperties": false
+          },
+          "default": []
+        },
+        "outputs": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "type": {
+                "type": "string",
+                "enum": [
+                  "epic",
+                  "story",
+                  "task"
+                ]
+              },
+              "contents": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "enum": [
+                    "general_info",
+                    "tags",
+                    "references",
+                    "priority",
+                    "estimation",
+                    "labels",
+                    "acceptance_criteria",
+                    "dependencies"
+                  ]
+                }
+              }
+            },
+            "required": [
+              "type",
+              "contents"
+            ],
+            "additionalProperties": false
+          },
+          "default": [
+            {
+              "type": "epic",
+              "contents": [
+                "general_info",
+                "tags"
+              ]
+            },
+            {
+              "type": "story",
+              "contents": [
+                "general_info",
+                "references",
+                "priority",
+                "estimation",
+                "labels"
+              ]
+            },
+            {
+              "type": "task",
+              "contents": [
+                "general_info",
+                "references",
+                "priority"
+              ]
+            }
+          ]
+        },
+        "descriptive_level": {
+          "type": "string",
+          "enum": [
+            "basic",
+            "deep"
+          ],
+          "default": "basic"
+        }
+      },
+      "required": [
+        "inputs",
+        "outputs",
+        "descriptive_level"
+      ]
+    }
+  },
+  {
+    "name": "Code Reviewer Agent",
+    "description": "Automatically reviews pull requests and provides detailed feedback on code quality, best practices, and potential improvements.",
+    "identifier": "CODE_REVIEWER",
+    "module": "DEVELOPMENT",
+    "tags": [
+      "pr_review",
+      "automation",
+      "code_review",
+      "multi_language"
+    ],
+    "is_active": true,
+    "custom_properties_schema": {
+      "type": "object",
+      "properties": {
+        "inputs": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "provider": {
+                "type": "string"
+              },
+              "type": {
+                "type": "string"
+              },
+              "urls": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              }
+            },
+            "required": [
+              "provider",
+              "type",
+              "urls"
+            ],
+            "additionalProperties": true
+          }
+        },
+        "docs": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "provider": {
+                "type": "string"
+              },
+              "id": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "provider",
+              "id"
+            ],
+            "additionalProperties": true
+          },
+          "default": []
+        },
+        "contents_to_include": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "enum": []
+          },
+          "default": []
+        },
+        "analysis_level": {
+          "type": "string",
+          "enum": [
+            "basic",
+            "deep"
+          ],
+          "default": "basic"
+        }
+      },
+      "required": [
+        "inputs",
+        "analysis_level"
+      ]
+    }
+  },
+  {
+    "name": "Root Cause Analysis Agent",
+    "description": "Analyzes root causes of issues and provides detailed feedback on code quality, best practices, and potential improvements.",
+    "identifier": "ROOT_CAUSE_ANALYSIS",
+    "module": "DEVELOPMENT",
+    "tags": [
+      "root_cause_analysis",
+      "automation"
+    ],
+    "is_active": true,
+    "custom_properties_schema": {
+      "type": "object",
+      "properties": {
+        "custom_instructions": {
+          "type": "string"
+        },
+        "incident": {
+          "type": "object",
+          "properties": {
+            "provider": {
+              "type": "string"
+            },
+            "id": {
+              "type": "string"
+            },
+            "url": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "provider",
+            "id",
+            "url"
+          ],
+          "additionalProperties": true
+        },
+        "github_repos": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "provider": {
+                "type": "string"
+              },
+              "url": {
+                "type": "string"
+              },
+              "branch": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "provider",
+              "url",
+              "branch"
+            ],
+            "additionalProperties": true
+          },
+          "default": []
+        },
+        "logs": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "provider": {
+                "type": "string"
+              },
+              "service_id": {
+                "type": "string"
+              },
+              "dateRange": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "provider",
+              "service_id",
+              "dateRange"
+            ],
+            "additionalProperties": true
+          },
+          "default": []
+        },
+        "docs": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "provider": {
+                "type": "string"
+              },
+              "urls": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "ids": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              }
+            },
+            "required": [
+              "provider"
+            ],
+            "additionalProperties": true
+          },
+          "default": []
+        },
+        "analysis_level": {
+          "type": "string",
+          "enum": [
+            "basic",
+            "deep"
+          ],
+          "default": "basic"
+        }
+      },
+      "required": [
+        "incident",
+        "github_repos",
+        "analysis_level"
+      ]
+    }
+  },
+  {
+    "name": "API Testing Suite Generator",
+    "description": "Generates comprehensive API test suites from specifications including functional, integration, performance, and security tests. Supports multiple testing frameworks and API documentation formats.",
+    "identifier": "API_TESTING_SUITE",
+    "module": "QUALITY_ASSURANCE",
+    "tags": [
+      "api_testing",
+      "test_automation",
+      "quality_assurance",
+      "performance_testing",
+      "security_testing",
+      "integration_testing"
+    ],
+    "is_active": true,
+    "custom_properties_schema": {
+      "type": "object",
+      "properties": {
+        "custom_instructions": {
+          "type": "string",
+          "description": "Custom instructions for the analysis"
+        },
+        "framework": {
+          "type": "string",
+          "enum": [
+            "playwright",
+            "rest-assured",
+            "postman"
+          ],
+          "description": "Testing framework to use"
+        },
+        "api_specs": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "object",
+            "properties": {
+              "provider": {
+                "type": "string",
+                "enum": [
+                  "swagger",
+                  "openapi",
+                  "postman",
+                  "file"
+                ]
+              },
+              "urls": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                },
+                "description": "URLs to API specifications"
+              },
+              "names": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                },
+                "description": "Names of uploaded specification files"
+              }
+            },
+            "required": [
+              "provider"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "testcase_sources": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "provider": {
+                "type": "string",
+                "enum": [
+                  "jira",
+                  "file"
+                ]
+              },
+              "keys": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                },
+                "description": "Keys/IDs for testcase sources (e.g., JIRA ticket keys)"
+              },
+              "urls": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                },
+                "description": "URLs to testcase documentation"
+              },
+              "names": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                },
+                "description": "Names of uploaded testcase files"
+              }
+            },
+            "required": [
+              "provider"
+            ],
+            "additionalProperties": false
+          },
+          "default": []
+        },
+        "repo": {
+          "type": "object",
+          "properties": {
+            "url": {
+              "type": "string",
+              "description": "Repository URL"
+            },
+            "branch": {
+              "type": "string",
+              "description": "Branch name",
+              "default": "main"
+            }
+          },
+          "required": [
+            "url"
+          ],
+          "additionalProperties": false
+        },
+        "docs": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "provider": {
+                "type": "string"
+              },
+              "urls": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "ids": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              }
+            },
+            "required": [
+              "provider"
+            ],
+            "additionalProperties": true
+          },
+          "default": []
+        },
+        "analysis_level": {
+          "type": "string",
+          "enum": [
+            "basic",
+            "deep"
+          ],
+          "description": "Level of analysis depth",
+          "default": "basic"
+        }
+      },
+      "required": [
+        "framework",
+        "api_specs",
+        "testcase_sources"
+      ],
+      "additionalProperties": false
+    }
+  }
+]

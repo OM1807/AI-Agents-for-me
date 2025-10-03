@@ -1,0 +1,13 @@
+{
+      "command": "uvx",
+      "args": ["awslabs.cloudwatch-mcp-server@latest"],
+      "env": {
+        "AWS_ACCESS_KEY_ID": "{{access_key}}",
+        "AWS_SECRET_ACCESS_KEY": "{{secret_key}}",
+        "AWS_REGION": "{{region}}",
+        "FASTMCP_LOG_LEVEL": "INFO"
+      },
+      "transport": "stdio",
+      "disabled": false,
+      "autoApprove": []
+}
