@@ -169,7 +169,7 @@ export function TestCaseConfiguration() {
 
           {/* Case Format */}
           <div className='space-y-4'>
-            <h3 className='text-sm font-semibold'>Case Format</h3>
+            <h3 className='text-sm font-semibold'>Scenario Structure</h3>
             <div className='space-y-3'>
               <label className='flex cursor-pointer items-center gap-3'>
                 <Toggle
@@ -178,20 +178,20 @@ export function TestCaseConfiguration() {
                     handleCaseFormatChange('generalInfo', checked)
                   }
                 />
-                <span className='text-sm'>General Info</span>
+                <span className='text-sm'>Metadata Section</span>
               </label>
               {caseFormat.generalInfo && (
                 <div className='ml-14 space-y-1 rounded-lg bg-gray-50 p-3 text-xs text-gray-600 dark:bg-gray-900 dark:text-gray-400'>
                   <ul className='list-disc pl-4'>
-                    <li>Test Case ID: eg. TC-LOGIN-001</li>
-                    <li>Title: eg. Verify login with valid credentials</li>
+                    <li>Scenario ID: eg. TC-LOGIN-001</li>
+                    <li>Objective: eg. Validate authentication with valid credentials</li>
                     <li>
-                      Description: eg. Ensure user can successfully log in with
-                      a valid username and password.
+                      Summary: eg. Confirm successful session establishment with
+                      valid username and password combination.
                     </li>
-                    <li>Priority: eg. High, Medium, Low</li>
+                    <li>Importance Level: eg. Critical, Standard, Minor</li>
                     <li>
-                      Environment: eg. Chrome, Firefox, Safari, Windows, MacOS,
+                      Target Environment: eg. Chrome, Firefox, Safari, Windows, MacOS,
                       etc.
                     </li>
                   </ul>
@@ -205,7 +205,7 @@ export function TestCaseConfiguration() {
                     handleCaseFormatChange('preconditions', checked)
                   }
                 />
-                <span className='text-sm'>Preconditions / Setup</span>
+                <span className='text-sm'>Prerequisites / Configuration</span>
               </label>
 
               <label className='flex cursor-pointer items-center gap-3'>
@@ -215,7 +215,7 @@ export function TestCaseConfiguration() {
                     handleCaseFormatChange('testSteps', checked)
                   }
                 />
-                <span className='text-sm'>Test Steps</span>
+                <span className='text-sm'>Execution Sequence</span>
               </label>
 
               <label className='flex cursor-pointer items-center gap-3'>
@@ -225,7 +225,7 @@ export function TestCaseConfiguration() {
                     handleCaseFormatChange('expectedResult', checked)
                   }
                 />
-                <span className='text-sm'>Expected Result</span>
+                <span className='text-sm'>Anticipated Outcome</span>
               </label>
             </div>
           </div>

@@ -31,7 +31,7 @@ export const PROJECT_METRICS: MetricData[] = [
   {
     id: 'active-projects',
     value: '24',
-    label: 'Active Projects',
+    label: 'Ongoing Initiatives',
     icon: Target,
     iconBgColor: 'bg-blue-100 dark:bg-blue-900/20',
     iconColor: 'text-blue-600 dark:text-blue-400',
@@ -39,7 +39,7 @@ export const PROJECT_METRICS: MetricData[] = [
   {
     id: 'on-time-delivery',
     value: '87%',
-    label: 'On-time Delivery',
+    label: 'Schedule Adherence',
     icon: Calendar,
     iconBgColor: 'bg-green-100 dark:bg-green-900/20',
     iconColor: 'text-green-600 dark:text-green-400',
@@ -47,7 +47,7 @@ export const PROJECT_METRICS: MetricData[] = [
   {
     id: 'requirements',
     value: '156',
-    label: 'Requirements',
+    label: 'Defined Specifications',
     icon: Users,
     iconBgColor: 'bg-purple-100 dark:bg-purple-900/20',
     iconColor: 'text-purple-600 dark:text-purple-400',
@@ -55,7 +55,7 @@ export const PROJECT_METRICS: MetricData[] = [
   {
     id: 'stakeholder-satisfaction',
     value: '92%',
-    label: 'Stakeholder Satisfaction',
+    label: 'Alignment Score',
     icon: BarChart3,
     iconBgColor: 'bg-orange-100 dark:bg-orange-900/20',
     iconColor: 'text-orange-600 dark:text-orange-400',
@@ -65,28 +65,28 @@ export const PROJECT_METRICS: MetricData[] = [
 export const PROJECT_FEATURES: FeatureData[] = [
   {
     id: 'requirements-analysis',
-    title: 'Requirements Analysis',
-    subtitle: 'AI-powered insights',
-    description: 'Analyze and prioritize requirements with AI assistance',
+    title: 'Specification Intelligence',
+    subtitle: 'Automated assessment',
+    description: 'Evaluate and rank specifications using smart analysis',
     icon: Clipboard,
     iconBgColor: 'bg-blue-100 dark:bg-blue-900/20',
     iconColor: 'text-blue-600 dark:text-blue-400',
   },
   {
     id: 'roadmap-planning',
-    title: 'Roadmap Planning',
-    subtitle: 'Strategic planning',
+    title: 'Release Orchestration',
+    subtitle: 'Timeline engineering',
     description:
-      'Create and manage product roadmaps with timeline optimization',
+      'Structure and schedule feature delivery with optimized sequencing',
     icon: Map,
     iconBgColor: 'bg-purple-100 dark:bg-purple-900/20',
     iconColor: 'text-purple-600 dark:text-purple-400',
   },
   {
     id: 'stakeholder-management',
-    title: 'Stakeholder Management',
-    subtitle: 'Communication hub',
-    description: 'Coordinate with stakeholders and track alignment',
+    title: 'Collaboration Nexus',
+    subtitle: 'Unified coordination',
+    description: 'Synchronize teams and maintain shared understanding',
     icon: Users2,
     iconBgColor: 'bg-green-100 dark:bg-green-900/20',
     iconColor: 'text-green-600 dark:text-green-400',
@@ -104,21 +104,21 @@ export interface ProjectData {
 export const CURRENT_PROJECTS: ProjectData[] = [
   {
     id: 'mobile-app-redesign',
-    title: 'Mobile App Redesign',
+    title: 'Client Experience Refresh',
     status: 'In Progress',
     progress: 65,
     team: 'Design Team',
   },
   {
     id: 'api-v2-development',
-    title: 'API v2.0 Development',
+    title: 'Service Layer Evolution',
     status: 'Planning',
     progress: 25,
     team: 'Backend Team',
   },
   {
     id: 'user-dashboard-enhancement',
-    title: 'User Dashboard Enhancement',
+    title: 'Command Center Improvement',
     status: 'Review',
     progress: 90,
     team: 'Frontend Team',

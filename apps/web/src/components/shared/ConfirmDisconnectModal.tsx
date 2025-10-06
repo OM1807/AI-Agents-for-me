@@ -27,7 +27,7 @@ const ConfirmDisconnectModal: React.FC<ModalProps> = ({
     <Dialog open={open} onOpenChange={onClose}>
       <DialogContent className='sm:max-w-md'>
         <DialogHeader>
-          <DialogTitle>Confirmation</DialogTitle>
+          <DialogTitle>Verify Action</DialogTitle>
         </DialogHeader>
 
         <div className='py-4'>
@@ -39,7 +39,7 @@ const ConfirmDisconnectModal: React.FC<ModalProps> = ({
             Cancel
           </Button>
           <Button onClick={onConfirm} disabled={isLoading}>
-            {isLoading ? 'Confirming...' : 'Confirm'}
+            {isLoading ? 'Processing...' : 'Proceed'}
           </Button>
         </DialogFooter>
       </DialogContent>

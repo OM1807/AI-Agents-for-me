@@ -8,22 +8,22 @@ import { useHeader } from '@/hooks/useHeader';
 const routeTitleMap: Record<string, string> = {
   '/': 'Dashboard',
   '/dashboard': 'Dashboard',
-  '/development': 'Your AI Agents for the Development Journey',
-  '/development/code-reviewer-agent': 'Code Reviewer Configuration Panel',
-  '/development/root-cause-analysis': 'Root Cause Analysis Configuration Panel',
+  '/development': 'Engineering Automation Hub',
+  '/development/code-reviewer-agent': 'Automated Code Review Workspace',
+  '/development/root-cause-analysis': 'Incident Investigation Center',
   '/development/code-understanding':
-    'Documentation & Knowledge Configuration Panel',
-  '/quality-assurance': 'Your AI Agents for the Quality Assurance Journey',
-  '/quality-assurance/test-gen-ai-agent': 'TestGen AI Configuration Panel',
+    'Codebase Intelligence Studio',
+  '/quality-assurance': 'Testing & Validation Suite',
+  '/quality-assurance/test-gen-ai-agent': 'Intelligent Test Generation Console',
   '/quality-assurance/api-testing-suite-agent':
-    'API Testing Suite Agent Configuration Panel',
+    'API Validation Workshop',
   '/quality-assurance/test-execution-agent':
-    'Test Execution Configuration Panel',
+    'Test Runner Command Center',
   '/quality-assurance/defect-management-agent':
-    'Defect Management Configuration Panel',
-  '/product-management': 'Your AI Agent for the Product Management Journey',
+    'Issue Tracking Hub',
+  '/product-management': 'Product Strategy Workspace',
   '/product-management/requirement-to-ticket-agent':
-    'Requirements To Ticket Configuration Panel',
+    'Requirement Conversion Studio',
   '/prompt-library': 'Prompt Library',
   '/help': 'Help & Support',
   '/settings': 'Settings',

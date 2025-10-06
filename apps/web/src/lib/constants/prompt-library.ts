@@ -48,10 +48,10 @@ export const PROMPT_CATEGORIES: CategoryFilter[] = [
 export const PROMPT_LIBRARY: PromptData[] = [
   {
     id: 'enforce-coding-guidelines',
-    title: 'Enforce Team Coding Guidelines',
+    title: 'Validate Coding Conventions',
     category: 'Development',
     description:
-      "Use this to evaluate code against your team's coding standards and best practices.",
+      "Assess implementation against established style guidelines and structural principles.",
     icon: CheckCircle,
     iconBgColor: 'bg-green-100 dark:bg-green-900/20',
     iconColor: 'text-green-600 dark:text-green-400',
@@ -59,10 +59,10 @@ export const PROMPT_LIBRARY: PromptData[] = [
   },
   {
     id: 'generate-module-architecture',
-    title: 'Generate Module Architecture',
+    title: 'Reconstruct System Design',
     category: 'Development',
     description:
-      'Use this to understand high-level structure of legacy or unfamiliar codebases.',
+      'Derive architectural patterns from existing implementations without prior documentation.',
     icon: Brain,
     iconBgColor: 'bg-pink-100 dark:bg-pink-900/20',
     iconColor: 'text-pink-600 dark:text-pink-400',
@@ -70,10 +70,10 @@ export const PROMPT_LIBRARY: PromptData[] = [
   },
   {
     id: 'detect-code-smells',
-    title: 'Detect Code Smells',
+    title: 'Identify Technical Debt',
     category: 'Development',
     description:
-      'Useful for detecting anti-patterns or inefficiencies in large files.',
+      'Surface structural weaknesses and maintainability risks in source code.',
     icon: Search,
     iconBgColor: 'bg-blue-100 dark:bg-blue-900/20',
     iconColor: 'text-blue-600 dark:text-blue-400',
@@ -81,9 +81,9 @@ export const PROMPT_LIBRARY: PromptData[] = [
   },
   {
     id: 'prd-summarizer',
-    title: 'PRD Summarizer',
+    title: 'Specification Digest',
     category: 'Product Management',
-    description: 'Use this to quickly understand a lengthy product spec.',
+    description: 'Extract core objectives and deliverables from detailed requirement documents.',
     icon: MessageSquare,
     iconBgColor: 'bg-gray-100 dark:bg-gray-900/20',
     iconColor: 'text-gray-600 dark:text-gray-400',
@@ -91,9 +91,9 @@ export const PROMPT_LIBRARY: PromptData[] = [
   },
   {
     id: 'feature-comparison-analyzer',
-    title: 'Feature Comparison Analyzer',
+    title: 'Option Evaluation Framework',
     category: 'Product Management',
-    description: 'Helps PMs decide between competing feature specs.',
+    description: 'Compare proposed capabilities across multiple decision factors.',
     icon: Scale,
     iconBgColor: 'bg-indigo-100 dark:bg-indigo-900/20',
     iconColor: 'text-indigo-600 dark:text-indigo-400',
@@ -101,9 +101,9 @@ export const PROMPT_LIBRARY: PromptData[] = [
   },
   {
     id: 'feedback-to-feature-ideas',
-    title: 'Feedback to Feature Ideas',
+    title: 'Insight Extraction Tool',
     category: 'Product Management',
-    description: 'Helps translate raw feedback into actionable items.',
+    description: 'Convert unstructured user input into prioritized enhancement opportunities.',
     icon: CheckCircle2,
     iconBgColor: 'bg-emerald-100 dark:bg-emerald-900/20',
     iconColor: 'text-emerald-600 dark:text-emerald-400',

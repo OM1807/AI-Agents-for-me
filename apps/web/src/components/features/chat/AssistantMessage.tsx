@@ -216,7 +216,7 @@ export const AssistantMessage: React.FC<AssistantMessageProps> = ({
         {isStreaming && isLastMessage && (
           <div className='mt-3 flex items-center gap-1 text-stone-400'>
             <SpinnerIcon className='h-4 w-4 animate-spin' />
-            &nbsp;Processing...
+            &nbsp;Analyzing...
           </div>
         )}
       </div>

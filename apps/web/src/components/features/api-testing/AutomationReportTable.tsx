@@ -121,7 +121,7 @@ export function AutomationReportTable({
           <PopoverContent side='left' align='start' className='w-80 p-2'>
             <div className='relative flex items-end'>
               <Textarea
-                placeholder='Ask anything about this automation report or request analysis'
+                placeholder='Inquire about report details or request deeper investigation'
                 className='min-h-[50px] resize-none overflow-y-auto bg-gray-50 pr-12 focus:bg-white'
                 value={inputValue}
                 onChange={e => setInputValue(e.target.value)}

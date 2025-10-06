@@ -24,8 +24,7 @@ export default function CodeReviewerAgent() {
   return (
     <div className='space-y-8'>
       <p className='text-muted-foreground mb-4 text-sm'>
-        Set up your project, data sources, and analysis preferences to generate
-        meaningful results.
+        Configure your workspace, input sources, and inspection criteria to produce actionable insights.
       </p>
 
       <div className='space-y-8'>

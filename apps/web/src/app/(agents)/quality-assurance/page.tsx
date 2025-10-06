@@ -87,8 +87,7 @@ export default function QualityAssurancePage() {
       {/* Page Header */}
       <div className='space-y-4'>
         <p className='text-muted-foreground text-sm'>
-          Automated test generation, execution, and comprehensive defect
-          management
+          Systematic test synthesis, coordinated execution pipelines, and centralized defect lifecycle management
         </p>
       </div>
 
