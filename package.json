@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "concurrently \"pnpm run dev:api\" \"pnpm run dev:web\"",
     "dev:web": "pnpm --filter @sdlc-agents/web dev",
-    "dev:api": "cd apps/api && make run HOST=0.0.0.0 PORT=8000 RELOAD=1",
+   "dev:api": "cd apps/api && make run HOST=0.0.0.0 PORT=8000 RELOAD=1",
     "build": "turbo run build",
     "build:web": "pnpm --filter @sdlc-agents/web build",
     "build:ci": "cd apps/web && npm ci && npm run build",

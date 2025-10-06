@@ -118,7 +118,7 @@ const Sidebar = () => {
           isCollapsed ? 'justify-center px-3 py-6' : 'p-6'
         )}
       >
-        <LogoShort className='h-8 w-8 flex-shrink-0' />
+        {/* <LogoShort className='h-8 w-8 flex-shrink-0' /> */}
         {!isCollapsed && <span className='text-2xl font-bold'>SDLC Agents</span>}
       </div>
 

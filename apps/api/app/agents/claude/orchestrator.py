@@ -1,4 +1,5 @@
 """Claude Code orchestration for agent workflows."""
+
 import re
 from collections.abc import AsyncGenerator
 from copy import deepcopy
@@ -180,6 +181,22 @@ class ClaudeOrchestrator:
 
                 elif isinstance(response, ResultMessage):
                     logger.debug(f"--> Result Message: {response}")
+
+                    # Log total token consumption
+                    if response.usage:
+                        total_tokens = response.usage.get("input_tokens", 0) + response.usage.get("output_tokens", 0)
+                        usage_data = {
+                            "input_tokens": response.usage.get("input_tokens", 0),
+                            "output_tokens": response.usage.get("output_tokens", 0),
+                            "total_tokens": total_tokens,
+                            "cache_creation_input_tokens": response.usage.get("cache_creation_input_tokens", 0),
+                            "cache_read_input_tokens": response.usage.get("cache_read_input_tokens", 0),
+                            "total_cost_usd": response.total_cost_usd,
+                            "duration_ms": response.duration_ms,
+                            "session_id": response.session_id,
+                        }
+
+                        logger.info(f"Token consumption summary | {usage_data}")
                     # Commenting this, as this is causing duplicate text blocks in the stream
                     # yield {"type": "text", "data": {"text": response.result}}
                     # finish the stream
