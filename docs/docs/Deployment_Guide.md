@@ -29,22 +29,21 @@ The SDLC Agents platform consists of three main components that need to be deplo
 │                                                 │
 │  ┌──────────────┐         ┌──────────────┐    │
 │  │  Next.js App │◄────────┤  CDN/Edge    │    │
-│  │  (Vercel)    │         │  (Vercel)    │    │
+│  │  (Fly.io)    │         │  (Fly.io)    │    │
 │  └──────┬───────┘         └──────────────┘    │
 │         │                                       │
 │         │ API Calls                            │
 │         ▼                                       │
 │  ┌──────────────┐                              │
 │  │  FastAPI     │                              │
-│  │  (Railway/   │                              │
-│  │   Render)    │                              │
+│  │  (Fly.io)    │                              │
 │  └──────┬───────┘                              │
 │         │                                       │
 │         │ Database Connection                  │
 │         ▼                                       │
 │  ┌──────────────┐         ┌──────────────┐    │
 │  │  PostgreSQL  │         │  File Storage│    │
-│  │  (Managed DB)│         │  (S3/R2)     │    │
+│  │  (Fly.io)    │         │  (Fly.io)    │    │
 │  └──────────────┘         └──────────────┘    │
 └─────────────────────────────────────────────────┘
 ```
@@ -55,9 +54,7 @@ The SDLC Agents platform consists of three main components that need to be deplo
 
 ### Required Services
 
-- **Cloud Platform Account** (Railway, Render, Heroku, or AWS)
-- **Vercel Account** (for frontend hosting)
-- **PostgreSQL Database** (managed service or self-hosted)
+- **Fly.io Account** (for all services)
 - **Domain Name** (optional, for custom domains)
 - **Third-Party Service Accounts**:
   - Anthropic API (for Claude)
@@ -69,7 +66,7 @@ The SDLC Agents platform consists of three main components that need to be deplo
 ### Required Tools
 
 - Git
-- Docker (optional, for containerized deployment)
+- Fly.io CLI (`flyctl`)
 - Node.js 18+ (for local builds)
 - Python 3.11+ (for local testing)
 - pnpm (for frontend dependencies)
@@ -154,7 +151,7 @@ Create a `.env.local` file in `apps/web/`:
 # App Configuration
 # ===========================================
 NEXT_PUBLIC_APP_URL=https://your-app.vercel.app
-NEXT_PUBLIC_API_URL=https://your-api.railway.app/api/v1
+NEXT_PUBLIC_API_URL=https://your-api.fly.dev/api/v1
 
 # ===========================================
 # OAuth - Notion
@@ -187,117 +184,106 @@ NEXT_PUBLIC_FIGMA_CLIENT_SECRET=xxxxxxxxxxxxxxxxxxxxx
 
 ## Backend Deployment
 
-### Option 1: Railway Deployment
+### Fly.io Deployment (Recommended)
 
-**Railway** is the recommended platform for FastAPI deployment.
+**Fly.io** provides a unified platform for deploying all services with excellent performance and global distribution.
 
-#### Step 1: Prepare Railway Project
+#### Step 1: Install Fly.io CLI
 
 ```bash
-# Install Railway CLI
-npm install -g @railway/cli
+# Install flyctl
+curl -L https://fly.io/install.sh | sh
 
-# Login to Railway
-railway login
+# Login to Fly.io
+flyctl auth login
+```
 
-# Initialize project
+#### Step 2: Deploy All Services
+
+Use the provided deployment script for easy setup:
+
+```bash
+# Make the script executable
+chmod +x deploy.sh
+
+# Run the deployment script
+./deploy.sh
+```
+
+The script will:
+- Deploy PostgreSQL database
+- Deploy API service
+- Deploy Web service
+- Configure environment variables
+- Set up networking between services
+
+#### Step 3: Manual Deployment (Alternative)
+
+If you prefer manual deployment:
+
+**Deploy Database:**
+```bash
 cd apps/api
-railway init
-
-# Link to existing project (or create new)
-railway link
+flyctl launch --config fly.postgres.toml
+flyctl deploy --config fly.postgres.toml
 ```
 
-#### Step 2: Configure Railway
-
-Create `railway.json` in `apps/api/`:
-
-```json
-{
-  "$schema": "https://railway.app/railway.schema.json",
-  "build": {
-    "builder": "NIXPACKS",
-    "buildCommand": "poetry install --no-dev"
-  },
-  "deploy": {
-    "startCommand": "poetry run uvicorn app.main:app --host 0.0.0.0 --port $PORT",
-    "healthcheckPath": "/health",
-    "healthcheckTimeout": 100,
-    "restartPolicyType": "ON_FAILURE",
-    "restartPolicyMaxRetries": 10
-  }
-}
+**Deploy API:**
+```bash
+flyctl launch --config fly.toml
+flyctl deploy --config fly.toml
 ```
 
-#### Step 3: Set Environment Variables
+**Deploy Web:**
+```bash
+cd ../web
+flyctl launch --config fly.toml
+flyctl deploy --config fly.toml
+```
+
+#### Step 4: Set Environment Variables
 
 ```bash
-# Set variables via CLI
-railway variables set SECRET_KEY=your-secret-key
-railway variables set DATABASE_URL=postgresql+asyncpg://...
-railway variables set ANTHROPIC_API_KEY=sk-ant-...
-# ... set all other variables
+# Set API secrets
+flyctl secrets set SECRET_KEY=your-secret-key --app sdlc-agents-api
+flyctl secrets set ANTHROPIC_API_KEY=sk-ant-... --app sdlc-agents-api
+flyctl secrets set DATABASE_URL=postgresql+asyncpg://... --app sdlc-agents-api
 
-# Or use Railway dashboard to add variables
-```
-
-#### Step 4: Deploy
-
-```bash
-# Deploy to Railway
-railway up
-
-# Check deployment status
-railway status
-
-# View logs
-railway logs
-
-# Get deployment URL
-railway domain
+# Set Web secrets
+flyctl secrets set NEXT_PUBLIC_API_URL=https://your-api.fly.dev/api/v1 --app sdlc-agents-web
+flyctl secrets set NEXT_PUBLIC_NOTION_CLIENT_ID=... --app sdlc-agents-web
+flyctl secrets set NEXT_PUBLIC_GITHUB_CLIENT_ID=... --app sdlc-agents-web
 ```
 
 #### Step 5: Configure Custom Domain (Optional)
 
 ```bash
-# Add custom domain
-railway domain add api.yourdomain.com
+# Add custom domain to API
+flyctl certs add api.yourdomain.com --app sdlc-agents-api
+
+# Add custom domain to Web
+flyctl certs add app.yourdomain.com --app sdlc-agents-web
+```
+
+#### Step 6: Monitor Deployment
+
+```bash
+# Check API status
+flyctl status --app sdlc-agents-api
+
+# Check Web status
+flyctl status --app sdlc-agents-web
+
+# View API logs
+flyctl logs --app sdlc-agents-api
+
+# View Web logs
+flyctl logs --app sdlc-agents-web
 ```
 
 ---
 
-### Option 2: Render Deployment
-
-#### Step 1: Create Render Web Service
-
-1. Go to [Render Dashboard](https://dashboard.render.com/)
-2. Click "New +" → "Web Service"
-3. Connect your GitHub repository
-4. Select `apps/api` directory
-
-#### Step 2: Configure Build Settings
-
-**Build Command**:
-```bash
-poetry install --no-dev
-```
-
-**Start Command**:
-```bash
-poetry run uvicorn app.main:app --host 0.0.0.0 --port $PORT
-```
-
-#### Step 3: Environment Variables
-
-Add all backend environment variables in Render dashboard.
-
-#### Step 4: Deploy
-
-Render will automatically deploy on push to the main branch.
-
----
-
-### Option 3: Docker Deployment
+### Alternative: Docker Deployment
 
 #### Step 1: Build Docker Image
 
@@ -368,7 +354,37 @@ docker-compose down
 
 ## Frontend Deployment
 
-### Recommended: Vercel Deployment
+### Fly.io Deployment (Recommended)
+
+The frontend is automatically deployed as part of the Fly.io setup using the deployment script.
+
+#### Manual Frontend Deployment
+
+If you need to deploy the frontend separately:
+
+```bash
+cd apps/web
+
+# Deploy to Fly.io
+flyctl launch --config fly.toml
+flyctl deploy --config fly.toml
+
+# Set environment variables
+flyctl secrets set NEXT_PUBLIC_API_URL=https://your-api.fly.dev/api/v1 --app sdlc-agents-web
+flyctl secrets set NEXT_PUBLIC_NOTION_CLIENT_ID=... --app sdlc-agents-web
+flyctl secrets set NEXT_PUBLIC_GITHUB_CLIENT_ID=... --app sdlc-agents-web
+```
+
+#### Custom Domain (Optional)
+
+```bash
+# Add custom domain
+flyctl certs add app.yourdomain.com --app sdlc-agents-web
+```
+
+---
+
+### Alternative: Vercel Deployment
 
 **Vercel** provides seamless Next.js deployment with optimal performance.
 
@@ -420,7 +436,7 @@ cd apps/web
 netlify deploy --prod
 
 # Set environment variables
-netlify env:set NEXT_PUBLIC_API_URL https://your-api.railway.app/api/v1
+netlify env:set NEXT_PUBLIC_API_URL https://your-api.fly.dev/api/v1
 # ... set other variables
 ```
 
@@ -502,37 +518,38 @@ sudo certbot --nginx -d app.yourdomain.com
 
 ## Database Setup
 
-### Option 1: Managed PostgreSQL (Recommended)
+### Option 1: Fly.io PostgreSQL (Recommended)
 
-**Providers**:
-- Railway (included with backend deployment)
-- Render
+**Fly.io PostgreSQL** is automatically deployed as part of the Fly.io setup.
+
+**Setup with Fly.io**:
+
+The database is automatically configured when you run the deployment script:
+
+```bash
+# Database is deployed automatically with the script
+./deploy.sh
+```
+
+**Manual Database Setup**:
+
+```bash
+cd apps/api
+
+# Deploy PostgreSQL
+flyctl launch --config fly.postgres.toml
+flyctl deploy --config fly.postgres.toml
+
+# Get connection details
+flyctl status --app sdlc-agents-db
+```
+
+**Alternative Providers**:
 - AWS RDS
 - Google Cloud SQL
 - DigitalOcean Managed Databases
 - Supabase
-
-**Setup with Railway**:
-
-```bash
-# Add PostgreSQL to Railway project
-railway add
-
-# Select PostgreSQL plugin
-
-# Get connection string
-railway variables
-
-# Copy DATABASE_URL
-```
-
-**Setup with Render**:
-
-1. Go to Render Dashboard
-2. Click "New +" → "PostgreSQL"
-3. Configure database
-4. Copy "External Database URL"
-5. Use as `DATABASE_URL` in backend
+- Render
 
 ---
 
@@ -636,7 +653,7 @@ poetry run alembic upgrade head
 
 **Cloud Logging**:
 
-- **Railway**: Built-in logging via `railway logs`
+- **Fly.io**: Built-in logging via `flyctl logs`
 - **Render**: Built-in logging in dashboard
 - **AWS**: CloudWatch Logs
 - **Google Cloud**: Cloud Logging
@@ -645,7 +662,7 @@ poetry run alembic upgrade head
 
 **Backend Health Check**:
 ```bash
-curl https://your-api.railway.app/health
+curl https://your-api.fly.dev/health
 ```
 
 **Response**:
@@ -660,7 +677,7 @@ curl https://your-api.railway.app/health
 
 **Database Health Check**:
 ```bash
-curl https://your-api.railway.app/api/v1/claude-code/health
+curl https://your-api.fly.dev/api/v1/claude-code/health
 ```
 
 ### Uptime Monitoring
@@ -737,7 +754,7 @@ Ensure OAuth apps use exact redirect URIs:
 - Verify `DATABASE_URL` format
 - Ensure database user has correct permissions
 - Check firewall rules (if self-hosted)
-- For Railway: Verify PostgreSQL plugin is attached
+- For Fly.io: Verify database app is running with `flyctl status --app sdlc-agents-db`
 
 #### 2. CORS Errors
 
@@ -789,8 +806,8 @@ NODE_OPTIONS=--max-old-space-size=4096 pnpm build
 
 **Backend Logs**:
 ```bash
-# Railway
-railway logs
+# Fly.io
+flyctl logs --app sdlc-agents-api
 
 # Render
 # View logs in dashboard
@@ -801,6 +818,9 @@ docker logs container-name -f
 
 **Frontend Logs**:
 ```bash
+# Fly.io
+flyctl logs --app sdlc-agents-web
+
 # Vercel
 vercel logs
 
@@ -865,7 +885,7 @@ SELECT pg_size_pretty(pg_database_size('sdlc_agents'));
 ### Database Backups
 
 **Automated Backups** (Managed Databases):
-- Railway: Automatic daily backups
+- Fly.io: Manual backups via `flyctl volumes snapshot`
 - Render: Automatic backups on paid plans
 - AWS RDS: Configure automated backups
 
@@ -906,6 +926,11 @@ aws s3 cp agents_backup_20240101.tar.gz s3://your-bucket/backups/
 
 ### Vertical Scaling
 
+**Fly.io**:
+- Scale machines with `flyctl scale count 2 --app sdlc-agents-api`
+- Upgrade machine size with `flyctl scale vm shared-cpu-2x --app sdlc-agents-api`
+- Monitor CPU and memory usage in dashboard
+
 **Railway/Render**:
 - Upgrade instance size in platform dashboard
 - Monitor CPU and memory usage
@@ -921,7 +946,7 @@ cat > load_test.js <<EOF
 import http from 'k6/http';
 
 export default function() {
-  http.get('https://your-api.railway.app/health');
+  http.get('https://your-api.fly.dev/health');
 }
 
 export let options = {
@@ -958,14 +983,14 @@ k6 run load_test.js
 
 ## Rollback Procedure
 
-### Railway Rollback
+### Fly.io Rollback
 
 ```bash
 # List deployments
-railway deployments
+flyctl releases --app sdlc-agents-api
 
 # Rollback to previous deployment
-railway rollback <deployment-id>
+flyctl releases rollback <release-id> --app sdlc-agents-api
 ```
 
 ### Vercel Rollback
@@ -995,10 +1020,10 @@ psql $DATABASE_URL < backup_20240101.sql
 
 This deployment guide provides comprehensive instructions for deploying SDLC Agents to production. For the most reliable and scalable deployment:
 
-✅ **Backend**: Railway or Render with managed PostgreSQL
-✅ **Frontend**: Vercel for optimal Next.js performance
+✅ **Backend**: Fly.io with managed PostgreSQL
+✅ **Frontend**: Fly.io for unified deployment
 ✅ **Monitoring**: Sentry for errors, UptimeRobot for uptime
-✅ **Backups**: Automated database backups, manual workspace backups
+✅ **Backups**: Manual database backups via Fly.io volumes
 ✅ **Security**: HTTPS, strong secrets, CORS configuration, regular audits
 
 For questions or issues, consult the logs, check health endpoints, and review the troubleshooting section.
