@@ -10,8 +10,9 @@ import json
 from collections.abc import Iterable
 from typing import Any
 
-# from fastmcp import Client  # TODO: Fix MCP compatibility issue - mcp.types missing
-# from fastmcp.exceptions import ToolError  # TODO: Fix MCP compatibility issue
+from fastmcp import Client  # TODO: Fix MCP compatibility issue - mcp.types missing
+from fastmcp.exceptions import ToolError  # TODO: Fix MCP compatibility issue
+
 from app.integrations.clients.base import DocsOps, IntegrationClient, IssuesOps, ProjectsOps
 from app.integrations.enums import IntegrationCapability
 
