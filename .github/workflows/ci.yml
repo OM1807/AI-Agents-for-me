@@ -17,32 +17,29 @@ on:
 
   workflow_dispatch:
 
+# Explicit permissions for GITHUB_TOKEN
+permissions:
+  contents: read
+  pull-requests: read
+
 # Cancel previous workflow runs for the same branch
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
-# Required permissions for the workflow
-permissions:
-  contents: read
-  pull-requests: read
-
 jobs:
-  # Detect changed paths once and expose outputs for other jobs to consume
+  # Detect what changed to run appropriate jobs
   detect-changes:
     runs-on: ubuntu-latest
     outputs:
-      api: ${{ steps.paths.outputs.api }}
-      web: ${{ steps.paths.outputs.web }}
-      workflows: ${{ steps.paths.outputs.workflows }}
+      api: ${{ steps.filter.outputs.api }}
+      web: ${{ steps.filter.outputs.web }}
     steps:
-      - name: Checkout
+      - name: Checkout repository
         uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
 
       - name: Filter changed paths
-        id: paths
+        id: filter
         uses: dorny/paths-filter@v3
         with:
           filters: |
@@ -50,13 +47,13 @@ jobs:
               - 'apps/api/**'
             web:
               - 'apps/web/**'
-            workflows:
-              - '.github/workflows/**'
 
-  api-code-quality:
+  # API Code Quality Checks
+  api-lint:
     needs: detect-changes
-    if: ${{ needs.detect-changes.outputs.api == 'true' || needs.detect-changes.outputs.workflows == 'true' }}
+    if: needs.detect-changes.outputs.api == 'true'
     runs-on: ubuntu-latest
+
     steps:
       #---------------------------------
       # Checkout repository
@@ -85,7 +82,7 @@ jobs:
           installer-parallel: true
 
       #---------------------------------
-      # Cache Poetry virtualenv
+      # load cached venv if cache exists
       #---------------------------------
       - name: Cache Poetry virtualenv
         id: poetry-cache
@@ -95,13 +92,21 @@ jobs:
           key: venv-${{ runner.os }}-${{ steps.setup-python.outputs.python-version }}-${{ hashFiles('**/poetry.lock') }}
 
       #---------------------------------
-      # Install dependencies
+      # Install dependencies if cache does not exist
       #---------------------------------
-      - name: Install dependencies
+      - name: Install dependencies if cache does not exist
+        if: steps.poetry-cache.outputs.cache-hit != 'true'
         working-directory: apps/api
         run: |
-          # Install project dependencies into the repo-local venv
           poetry install --no-interactions --no-root
+
+      #---------------------------------
+      # Install project
+      #---------------------------------
+      - name: Install Project
+        working-directory: apps/api
+        run: |
+          poetry install --no-interactions
 
       #---------------------------------
       # Run Code Quality Checks
@@ -157,11 +162,11 @@ jobs:
           fail_ci_if_error: false
 
       #---------------------------------
-      # Code Quality Summary
+      # API Code Quality Summary
       #---------------------------------
-      - name: Code Quality Summary
+      - name: API Code Quality Summary
         run: |
-          echo "## 📊 Code Quality Results" >> $GITHUB_STEP_SUMMARY
+          echo "## 📊 API Code Quality Results" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "✅ **Linting**: Ruff checks completed" >> $GITHUB_STEP_SUMMARY
           echo "✅ **Formatting**: Black & isort checks completed" >> $GITHUB_STEP_SUMMARY
@@ -170,30 +175,41 @@ jobs:
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "🎯 **Configuration**: 120-character line length, Python 3.11+" >> $GITHUB_STEP_SUMMARY
 
-  web-code-quality:
+  # Web Code Quality Checks
+  web-lint:
     needs: detect-changes
-    if: ${{ needs.detect-changes.outputs.web == 'true' || needs.detect-changes.outputs.workflows == 'true' }}
+    if: needs.detect-changes.outputs.web == 'true'
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        node-version: ["20"]
 
     steps:
-      - uses: actions/checkout@v4
+      #---------------------------------
+      # Checkout repository
+      #---------------------------------
+      - name: Checkout repository
+        uses: actions/checkout@v4
 
-      - name: Setup Node.js ${{ matrix.node-version }}
+      #---------------------------------
+      # Set up Node.js
+      #---------------------------------
+      - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: ${{ matrix.node-version }}
-          cache: 'npm'
-          cache-dependency-path: 'apps/web/package-lock.json'
+          node-version: "20"
+          cache: "npm"
+          cache-dependency-path: "apps/web/package-lock.json"
 
+      #---------------------------------
+      # Install dependencies
+      #---------------------------------
       - name: Install dependencies
         working-directory: apps/web
         run: |
           echo "📦 Installing dependencies..."
           npm ci
 
+      #---------------------------------
+      # Run Code Quality Checks
+      #---------------------------------
       - name: Run ESLint
         working-directory: apps/web
         run: |
@@ -212,18 +228,27 @@ jobs:
           echo "💄 Checking Prettier formatting..."
           npm run format:check
 
+      #---------------------------------
+      # Run tests
+      #---------------------------------
       - name: Run tests
         working-directory: apps/web
         run: |
           echo "🧪 Running tests..."
-          npm run test --run
+          npm run test
 
+      #---------------------------------
+      # Build application
+      #---------------------------------
       - name: Build application
         working-directory: apps/web
         run: |
-          echo "🏗️ Building application..."
+          echo "🏗️ Building Next.js application..."
           npm run build
 
+      #---------------------------------
+      # Web Code Quality Summary
+      #---------------------------------
       - name: Web Code Quality Summary
         if: always()
         run: |
@@ -233,6 +258,6 @@ jobs:
           echo "✅ **Type Checking**: TypeScript validation completed" >> $GITHUB_STEP_SUMMARY
           echo "✅ **Formatting**: Prettier checks completed" >> $GITHUB_STEP_SUMMARY
           echo "✅ **Testing**: Vitest execution completed" >> $GITHUB_STEP_SUMMARY
-          echo "✅ **Build**: Next.js application build completed" >> $GITHUB_STEP_SUMMARY
+          echo "✅ **Build**: Next.js build completed" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "🎯 **Configuration**: Node.js 20, Next.js 15, TypeScript 5" >> $GITHUB_STEP_SUMMARY
