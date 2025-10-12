@@ -98,7 +98,7 @@ jobs:
         if: steps.poetry-cache.outputs.cache-hit != 'true'
         working-directory: apps/api
         run: |
-          poetry install --no-interactions --no-root
+          poetry install --no-interaction --no-root
 
       #---------------------------------
       # Install project
@@ -106,7 +106,7 @@ jobs:
       - name: Install Project
         working-directory: apps/api
         run: |
-          poetry install --no-interactions
+          poetry install --no-interaction
 
       #---------------------------------
       # Run Code Quality Checks
