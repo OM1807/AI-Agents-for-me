@@ -26,17 +26,25 @@ jobs:
 
     steps:
       #---------------------------------
-      # Checkout repository and set up Python
+      # Checkout repository
       #---------------------------------
-      - name: Checkout repository
+        - name: Checkout repository
         uses: actions/checkout@v4
-        uses: dorny/paths-filter@v3
+
+      #---------------------------------
+      # Filter changed paths
+      #---------------------------------
+      - name: Filter changed paths
         id: changes
+        uses: dorny/paths-filter@v3
         with:
           filters: |
             api:
               - 'apps/api/**'
 
+      #---------------------------------
+      # Set up Python
+      #---------------------------------
       - name: Set up Python
         id: setup-python
         uses: actions/setup-python@5
