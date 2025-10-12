@@ -1,0 +1,35 @@
+# fly.toml app configuration file generated for sdlc-agents-db-young-cherry-8497 on 2025-10-08T14:31:34+05:30
+#
+# See https://fly.io/docs/reference/configuration/ for information about how to use this file.
+#
+
+app = 'sdlc-pg-15'
+primary_region = 'bom'
+
+[build]
+  image = 'postgres:15-alpine'
+
+[env]
+  LANG = 'C.UTF-8'
+  LC_ALL = 'C.UTF-8'
+  POSTGRES_DB = 'sdlc_agents'
+  POSTGRES_INITDB_ARGS = '--locale=C.UTF-8'
+  POSTGRES_PASSWORD = 'postgres'
+  POSTGRES_USER = 'postgres'
+  PGDATA = '/var/lib/postgresql/data/pgdata'
+
+[[mounts]]
+  source = 'sdlc_agents_postgres_data'
+  destination = '/var/lib/postgresql/data'
+
+[[services]]
+  protocol = 'tcp'
+  internal_port = 5432
+
+  [[services.ports]]
+    port = 5432
+
+[[vm]]
+  cpu_kind = 'shared'
+  cpus = 1
+  memory_mb = 512
