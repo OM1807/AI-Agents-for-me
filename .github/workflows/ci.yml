@@ -5,13 +5,15 @@ on:
     branches: [main, dev]
     paths:
       - "apps/api/**"
-      - ".github/workflows/code-quality.yml"
+      - "apps/web/**"
+      - ".github/workflows/ci.yml"
 
   pull_request:
     branches: [main, dev]
     paths:
       - "apps/api/**"
-      - ".github/workflows/code-quality.yml"
+      - "apps/web/**"
+      - ".github/workflows/ci.yml"
 
   workflow_dispatch:
 
@@ -21,26 +23,41 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  lint:
+  # Detect changed paths once and expose outputs for other jobs to consume
+  detect-changes:
     runs-on: ubuntu-latest
+    outputs:
+      api: ${{ steps.paths.outputs.api }}
+      web: ${{ steps.paths.outputs.web }}
+      workflows: ${{ steps.paths.outputs.workflows }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
+      - name: Filter changed paths
+        id: paths
+        uses: dorny/paths-filter@v3
+        with:
+          filters: |
+            api:
+              - 'apps/api/**'
+            web:
+              - 'apps/web/**'
+            workflows:
+              - '.github/workflows/**'
+
+  api-code-quality:
+    needs: detect-changes
+    if: ${{ needs.detect-changes.outputs.api == 'true' || needs.detect-changes.outputs.workflows == 'true' }}
+    runs-on: ubuntu-latest
     steps:
       #---------------------------------
       # Checkout repository
       #---------------------------------
       - name: Checkout repository
         uses: actions/checkout@v4
-
-      #---------------------------------
-      # Filter changed paths
-      #---------------------------------
-      - name: Filter changed paths
-        id: changes
-        uses: dorny/paths-filter@v3
-        with:
-          filters: |
-            api:
-              - 'apps/api/**'
 
       #---------------------------------
       # Set up Python
@@ -63,7 +80,7 @@ jobs:
           installer-parallel: true
 
       #---------------------------------
-      # load cached venv if cache exists
+      # Cache Poetry virtualenv
       #---------------------------------
       - name: Cache Poetry virtualenv
         id: poetry-cache
@@ -73,21 +90,13 @@ jobs:
           key: venv-${{ runner.os }}-${{ steps.setup-python.outputs.python-version }}-${{ hashFiles('**/poetry.lock') }}
 
       #---------------------------------
-      # Install dependencies if cache does not exist
+      # Install dependencies
       #---------------------------------
-      - name: Install dependencies if cache does not exist
-        if: steps.poetry-cache.outputs.cache-hit != 'true'
+      - name: Install dependencies
         working-directory: apps/api
         run: |
+          # Install project dependencies into the repo-local venv
           poetry install --no-interactions --no-root
-
-      #---------------------------------
-      # Install project
-      #---------------------------------
-      - name: Install Project
-        working-directory: apps/api
-        run: |
-          poetry install --no-interactions
 
       #---------------------------------
       # Run Code Quality Checks
@@ -155,3 +164,70 @@ jobs:
           echo "✅ **Testing**: Pytest with coverage completed" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "🎯 **Configuration**: 120-character line length, Python 3.11+" >> $GITHUB_STEP_SUMMARY
+
+  web-code-quality:
+    needs: detect-changes
+    if: ${{ needs.detect-changes.outputs.web == 'true' || needs.detect-changes.outputs.workflows == 'true' }}
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node-version: ["20"]
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: 'npm'
+          cache-dependency-path: 'apps/web/package-lock.json'
+
+      - name: Install dependencies
+        working-directory: apps/web
+        run: |
+          echo "📦 Installing dependencies..."
+          npm ci
+
+      - name: Run ESLint
+        working-directory: apps/web
+        run: |
+          echo "🔍 Running ESLint..."
+          npm run lint:check
+
+      - name: Run TypeScript type checking
+        working-directory: apps/web
+        run: |
+          echo "🔍 Running TypeScript type checking..."
+          npm run type-check
+
+      - name: Run Prettier formatting check
+        working-directory: apps/web
+        run: |
+          echo "💄 Checking Prettier formatting..."
+          npm run format:check
+
+      - name: Run tests
+        working-directory: apps/web
+        run: |
+          echo "🧪 Running tests..."
+          npm run test --run
+
+      - name: Build application
+        working-directory: apps/web
+        run: |
+          echo "🏗️ Building application..."
+          npm run build
+
+      - name: Web Code Quality Summary
+        if: always()
+        run: |
+          echo "## 🌐 Web Code Quality Results" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "✅ **Linting**: ESLint checks completed" >> $GITHUB_STEP_SUMMARY
+          echo "✅ **Type Checking**: TypeScript validation completed" >> $GITHUB_STEP_SUMMARY
+          echo "✅ **Formatting**: Prettier checks completed" >> $GITHUB_STEP_SUMMARY
+          echo "✅ **Testing**: Vitest execution completed" >> $GITHUB_STEP_SUMMARY
+          echo "✅ **Build**: Next.js application build completed" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "🎯 **Configuration**: Node.js 20, Next.js 15, TypeScript 5" >> $GITHUB_STEP_SUMMARY
