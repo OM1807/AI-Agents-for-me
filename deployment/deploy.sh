@@ -50,6 +50,7 @@ else
     flyctl launch --config fly.postgres.toml --no-deploy
     flyctl deploy --config fly.postgres.toml
 fi
+cd ../..
 
 # Get database connection details
 print_status "Getting database connection details..."
@@ -67,14 +68,16 @@ DATABASE_URL="postgresql+asyncpg://postgres:${DB_PASSWORD}@${DB_HOST}:5432/devor
 
 # Deploy API
 print_status "Deploying API service..."
+cd apps/api
 if flyctl apps list | grep -q "devorbit-ai-api"; then
     print_warning "API app already exists. Updating..."
-    flyctl deploy --config fly.toml
+    flyctl deploy --config fly-api.toml
 else
     print_status "Creating new API app..."
-    flyctl launch --config fly.toml --no-deploy
-    flyctl deploy --config fly.toml
+    flyctl launch --config fly-api.toml --no-deploy
+    flyctl deploy --config fly-api.toml
 fi
+cd ../..
 
 # Set API secrets
 print_status "Setting API environment variables..."
@@ -91,15 +94,16 @@ fi
 
 # Deploy Web
 print_status "Deploying Web service..."
-cd ../web
+cd apps/web
 if flyctl apps list | grep -q "devorbit-ai-web"; then
     print_warning "Web app already exists. Updating..."
-    flyctl deploy --config fly.toml
+    flyctl deploy --config fly-web.toml
 else
     print_status "Creating new Web app..."
-    flyctl launch --config fly.toml --no-deploy
-    flyctl deploy --config fly.toml
+    flyctl launch --config fly-web.toml --no-deploy
+    flyctl deploy --config fly-web.toml
 fi
+cd ../..
 
 # Set Web environment variables
 print_status "Setting Web environment variables..."

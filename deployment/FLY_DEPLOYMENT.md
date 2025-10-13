@@ -23,11 +23,11 @@ This guide provides step-by-step instructions for deploying the DevOrbit AI plat
 Run the automated deployment script:
 
 ```bash
-# Make the script executable
-chmod +x deploy.sh
+# Make the script executable (run from project root)
+chmod +x deployment/deploy.sh
 
 # Deploy all services
-./deploy.sh
+./deployment/deploy.sh
 ```
 
 This will:
@@ -42,8 +42,8 @@ This will:
 After deployment, configure your secrets:
 
 ```bash
-# Run the secrets configuration script
-./fly-secrets.sh
+# Run the secrets configuration script (run from project root)
+./deployment/fly-secrets.sh
 
 # Or set secrets manually
 flyctl secrets set ANTHROPIC_API_KEY='your-anthropic-key' --app devorbit-ai-api
@@ -51,9 +51,41 @@ flyctl secrets set NEXT_PUBLIC_NOTION_CLIENT_ID='your-notion-client-id' --app de
 # ... set other OAuth credentials
 ```
 
+## 🚀 Automated Deployment with GitHub Actions (Recommended)
+
+For production workflows, use the automated CI/CD pipeline:
+
+### Setup GitHub Actions CD Pipeline
+
+1. **Generate Fly.io deploy token**:
+   ```bash
+   flyctl tokens create deploy -x 999999h
+   ```
+   Copy the entire token (including `FlyV1` prefix).
+
+2. **Add token to GitHub Secrets**:
+   - Go to your GitHub repo → **Settings** → **Secrets and variables** → **Actions**
+   - Create new secret: `FLY_API_TOKEN`
+   - Paste the token as the value
+
+3. **Push to main branch**:
+   ```bash
+   git push origin main
+   ```
+
+The CD pipeline will automatically:
+- ✅ Detect which apps changed (API/Web)
+- ✅ Deploy only what changed
+- ✅ Deploy API first, then Web (if both changed)
+- ✅ Show deployment status in GitHub Actions
+
+**Learn more**: See [`.github/workflows/README.md`](../.github/workflows/README.md) for complete documentation.
+
+---
+
 ## Manual Deployment
 
-If you prefer to deploy services individually:
+If you prefer to deploy services individually or for initial setup:
 
 ### 1. Deploy Database
 
@@ -61,21 +93,25 @@ If you prefer to deploy services individually:
 cd apps/api
 flyctl launch --config fly.postgres.toml
 flyctl deploy --config fly.postgres.toml
+cd ../..
 ```
 
 ### 2. Deploy API
 
 ```bash
-flyctl launch --config fly.toml
-flyctl deploy --config fly.toml
+cd apps/api
+flyctl launch --config fly-api.toml
+flyctl deploy --config fly-api.toml
+cd ../..
 ```
 
 ### 3. Deploy Web
 
 ```bash
-cd ../web
-flyctl launch --config fly.toml
-flyctl deploy --config fly.toml
+cd apps/web
+flyctl launch --config fly-web.toml
+flyctl deploy --config fly-web.toml
+cd ../..
 ```
 
 ## Environment Variables
