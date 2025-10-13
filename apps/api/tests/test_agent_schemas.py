@@ -22,7 +22,6 @@ class TestAIAgentResponse:
             "module": AgentModule.DEVELOPMENT,
             "tags": ["analysis", "automation"],
             "is_active": True,
-            "system_prompt": "You are a helpful code analysis assistant.",
             "custom_properties_schema": {"type": "object"},
             "created_at": datetime.now(),
             "updated_at": datetime.now(),
@@ -37,7 +36,6 @@ class TestAIAgentResponse:
         assert response.module == AgentModule.DEVELOPMENT
         assert response.tags == ["analysis", "automation"]
         assert response.is_active is True
-        assert response.system_prompt == "You are a helpful code analysis assistant."
         assert response.custom_properties_schema == {"type": "object"}
 
     def test_agent_response_with_enum_strings(self):
@@ -50,7 +48,6 @@ class TestAIAgentResponse:
             "module": "project_management",  # String instead of enum
             "tags": ["testing", "project_management"],
             "is_active": True,
-            "system_prompt": "You are a test case generation specialist.",
             "custom_properties_schema": {},
             "created_at": datetime.now(),
             "updated_at": datetime.now(),
@@ -71,7 +68,6 @@ class TestAIAgentResponse:
             "module": AgentModule.QUALITY_ASSURANCE,
             "tags": [],
             "is_active": False,
-            "system_prompt": "You are a test generator.",
             "custom_properties_schema": {},
             "created_at": datetime.now(),
             "updated_at": datetime.now(),
@@ -102,7 +98,6 @@ class TestAIAgentResponse:
             "module": AgentModule.DEVELOPMENT,
             "tags": ["advanced", "configurable"],
             "is_active": True,
-            "system_prompt": "You are an advanced assistant.",
             "custom_properties_schema": complex_schema,
             "created_at": datetime.now(),
             "updated_at": datetime.now(),
@@ -123,7 +118,6 @@ class TestAIAgentResponse:
             "module": AgentModule.DEVELOPMENT,
             "tags": [],
             "is_active": True,
-            "system_prompt": "Test prompt",
             "custom_properties_schema": {},
             "created_at": datetime.now(),
             "updated_at": datetime.now(),
@@ -144,7 +138,6 @@ class TestAIAgentResponse:
             "module": "Invalid Module",
             "tags": [],
             "is_active": True,
-            "system_prompt": "Test prompt",
             "custom_properties_schema": {},
             "created_at": datetime.now(),
             "updated_at": datetime.now(),
@@ -179,7 +172,6 @@ class TestAIAgentResponse:
             "module": AgentModule.QUALITY_ASSURANCE,
             "tags": ["json", "test"],
             "is_active": True,
-            "system_prompt": "You are a JSON test agent.",
             "custom_properties_schema": {"type": "object"},
             "created_at": datetime.now(),
             "updated_at": datetime.now(),
@@ -208,7 +200,6 @@ class TestAIAgentListResponse:
             "module": AgentModule.DEVELOPMENT,
             "tags": ["test"],
             "is_active": True,
-            "system_prompt": "Test prompt",
             "custom_properties_schema": {},
             "created_at": datetime.now(),
             "updated_at": datetime.now(),
@@ -250,7 +241,6 @@ class TestAIAgentListResponse:
                 "module": AgentModule.DEVELOPMENT,
                 "tags": [f"tag{i + 1}"],
                 "is_active": True,
-                "system_prompt": "Test prompt",
                 "custom_properties_schema": {},
                 "created_at": datetime.now(),
                 "updated_at": datetime.now(),
@@ -283,7 +273,6 @@ class TestAIAgentListResponse:
             "module": AgentModule.PROJECT_MANAGEMENT,
             "tags": ["json", "list"],
             "is_active": True,
-            "system_prompt": "Test prompt",
             "custom_properties_schema": {},
             "created_at": datetime.now(),
             "updated_at": datetime.now(),

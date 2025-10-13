@@ -46,7 +46,7 @@ async def test_register_user_duplicate_email(
         password="password123",
         provider=Provider.PASS,
     )
-    await user_crud.create(user_crud.session, obj_in=user_data)
+    await user_crud.create(obj_in=user_data)
 
     # Try to register with same email
     duplicate_user_data = {
@@ -96,7 +96,7 @@ async def test_login_success(
         password="securepassword123",
         provider=Provider.PASS,
     )
-    await user_crud.create(user_crud.session, obj_in=user_data)
+    await user_crud.create(obj_in=user_data)
 
     login_data = {"email": "test@example.com", "password": "securepassword123"}
 
@@ -137,7 +137,7 @@ async def test_login_inactive_user(
         password="securepassword123",
         provider=Provider.PASS,
     )
-    created_user = await user_crud.create(user_crud.session, obj_in=user_data)
+    created_user = await user_crud.create(obj_in=user_data)
 
     # Manually set user as inactive
     created_user.is_active = False
@@ -179,7 +179,7 @@ async def test_get_current_user_success(
         password="securepassword123",
         provider=Provider.PASS,
     )
-    await user_crud.create(user_crud.session, obj_in=user_data)
+    await user_crud.create(obj_in=user_data)
 
     # Login to get token
     login_data = {"email": "test@example.com", "password": "securepassword123"}

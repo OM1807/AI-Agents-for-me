@@ -1,0 +1,35 @@
+# Fly.io configuration for SDLC Agents Web
+app = "devorbit-ai"
+primary_region = "bom"
+
+[build]
+  dockerfile = "Dockerfile"
+  [build.args]
+    NEXT_PUBLIC_API_URL = "https://sdlc-api.fly.dev/api/v1"
+    NEXT_PUBLIC_APP_URL = "https://devorbit-ai.fly.dev"
+
+[env]
+  NODE_ENV = "production"
+  NEXT_TELEMETRY_DISABLED = "1"
+  PORT = "3000"
+  HOSTNAME = "0.0.0.0"
+
+[http_service]
+  internal_port = 3000
+  force_https = true
+  auto_stop_machines = true        # ✅ fixed (boolean, not string)
+  auto_start_machines = true
+  min_machines_running = 1         # ✅ optional: keeps at least 1 always active
+  processes = ["app"]
+
+  [[http_service.checks]]
+    grace_period = "15s"
+    interval = "30s"
+    method = "GET"
+    timeout = "5s"
+    path = "/api/health"
+
+[[vm]]
+  cpu_kind = "shared"
+  cpus = 1
+  memory_mb = 512

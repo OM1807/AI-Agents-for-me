@@ -68,7 +68,6 @@ class Settings(BaseSettings):
     DEBUG: bool = Field(default=True, description="Debug mode")
     LOG_LEVEL: str = Field(default="DEBUG", description="Logging level")
 
-    # Railway Configuration
     PORT: int = Field(default=8000, description="Server port")
 
     # Security Configuration

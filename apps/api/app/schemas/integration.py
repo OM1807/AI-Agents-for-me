@@ -26,9 +26,12 @@ class IntegrationCreate(IntegrationBase):
 class IntegrationUpdate(BaseModel):
     """Schema for integration update."""
 
-    auth_type: AuthType = Field(..., description="Authentication type")
-    credentials: dict[str, Any] = Field(..., description="Integration credentials based on auth_type")
-    is_active: bool = Field(default=True, description="Integration status")
+    name: str | None = Field(None, min_length=1, max_length=100, description="Integration name")
+    auth_type: AuthType | None = Field(None, description="Authentication type")
+    token: str | None = Field(None, description="Authentication token (deprecated)")
+    credentials: dict[str, Any] | None = Field(None, description="Integration credentials based on auth_type")
+    is_active: bool | None = Field(None, description="Integration status")
+    mcp_config: dict[str, Any] | None = Field(None, description="MCP configuration (deprecated)")
 
 
 class IntegrationResponse(IntegrationBase):

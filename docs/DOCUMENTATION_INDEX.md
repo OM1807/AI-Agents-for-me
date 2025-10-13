@@ -94,7 +94,7 @@ Welcome to the comprehensive documentation for the SDLC Agents platform. This in
 - Prerequisites and required services
 - Environment configuration
 - Backend deployment
-  - Railway (recommended)
+  - Fly.io (recommended)
   - Render
   - Docker deployment
 - Frontend deployment
@@ -215,7 +215,7 @@ When you see placeholders like these, replace them with your actual values:
 
 - `{agent_type}` - Replace with actual agent identifier (e.g., `code_analysis`)
 - `{session_id}` - Replace with actual session ID
-- `your-api.railway.app` - Replace with your actual API URL
+- `your-api.fly.dev` - Replace with your actual API URL
 - `your-app.vercel.app` - Replace with your actual frontend URL
 
 ### Status Indicators

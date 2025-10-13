@@ -1,0 +1,280 @@
+# SDLC Agents - Fly.io Deployment Guide
+
+This guide provides step-by-step instructions for deploying the SDLC Agents platform to Fly.io.
+
+## Quick Start
+
+### Prerequisites
+
+1. **Install Fly.io CLI**:
+   ```bash
+   curl -L https://fly.io/install.sh | sh
+   ```
+
+2. **Login to Fly.io**:
+   ```bash
+   flyctl auth login
+   ```
+
+3. **Set up your environment variables** (see [Environment Variables](#environment-variables) section)
+
+### Deploy All Services
+
+Run the automated deployment script:
+
+```bash
+# Make the script executable
+chmod +x deploy.sh
+
+# Deploy all services
+./deploy.sh
+```
+
+This will:
+- Deploy PostgreSQL database
+- Deploy API service
+- Deploy Web service
+- Configure networking between services
+- Set up basic environment variables
+
+### Configure Secrets
+
+After deployment, configure your secrets:
+
+```bash
+# Run the secrets configuration script
+./fly-secrets.sh
+
+# Or set secrets manually
+flyctl secrets set ANTHROPIC_API_KEY='your-anthropic-key' --app sdlc-agents-api
+flyctl secrets set NEXT_PUBLIC_NOTION_CLIENT_ID='your-notion-client-id' --app sdlc-agents-web
+# ... set other OAuth credentials
+```
+
+## Manual Deployment
+
+If you prefer to deploy services individually:
+
+### 1. Deploy Database
+
+```bash
+cd apps/api
+flyctl launch --config fly.postgres.toml
+flyctl deploy --config fly.postgres.toml
+```
+
+### 2. Deploy API
+
+```bash
+flyctl launch --config fly.toml
+flyctl deploy --config fly.toml
+```
+
+### 3. Deploy Web
+
+```bash
+cd ../web
+flyctl launch --config fly.toml
+flyctl deploy --config fly.toml
+```
+
+## Environment Variables
+
+### API Secrets (sdlc-agents-api)
+
+**Required:**
+- `SECRET_KEY` - Random secret key for JWT tokens
+- `ANTHROPIC_API_KEY` - Your Anthropic API key
+- `DATABASE_URL` - PostgreSQL connection string (set automatically)
+
+**Optional:**
+- `BACKEND_CORS_ORIGINS` - CORS allowed origins
+- `LOG_LEVEL` - Logging level (default: INFO)
+
+### Web Secrets (sdlc-agents-web)
+
+**Required:**
+- `NEXT_PUBLIC_API_URL` - API endpoint URL (set automatically)
+
+**OAuth Integration:**
+- `NEXT_PUBLIC_NOTION_CLIENT_ID` - Notion OAuth client ID
+- `NEXT_PUBLIC_NOTION_CLIENT_SECRET` - Notion OAuth client secret
+- `NEXT_PUBLIC_GITHUB_CLIENT_ID` - GitHub OAuth client ID
+- `NEXT_PUBLIC_GITHUB_CLIENT_SECRET` - GitHub OAuth client secret
+- `NEXT_PUBLIC_ATLASSIAN_CLIENT_ID` - Atlassian OAuth client ID
+- `NEXT_PUBLIC_ATLASSIAN_CLIENT_SECRET` - Atlassian OAuth client secret
+
+## Monitoring
+
+### Check Service Status
+
+```bash
+# Check API status
+flyctl status --app sdlc-agents-api
+
+# Check Web status
+flyctl status --app sdlc-agents-web
+
+# Check Database status
+flyctl status --app sdlc-agents-db
+```
+
+### View Logs
+
+```bash
+# API logs
+flyctl logs --app sdlc-agents-api
+
+# Web logs
+flyctl logs --app sdlc-agents-web
+
+# Database logs
+flyctl logs --app sdlc-agents-db
+```
+
+### Health Checks
+
+```bash
+# API health check
+curl https://your-api.fly.dev/health
+
+# Web health check
+curl https://your-web.fly.dev/
+```
+
+## Scaling
+
+### Scale Services
+
+```bash
+# Scale API to 2 instances
+flyctl scale count 2 --app sdlc-agents-api
+
+# Scale Web to 2 instances
+flyctl scale count 2 --app sdlc-agents-web
+
+# Upgrade machine size
+flyctl scale vm shared-cpu-2x --app sdlc-agents-api
+```
+
+## Custom Domains
+
+### Add Custom Domains
+
+```bash
+# Add custom domain to API
+flyctl certs add api.yourdomain.com --app sdlc-agents-api
+
+# Add custom domain to Web
+flyctl certs add app.yourdomain.com --app sdlc-agents-web
+```
+
+## Backups
+
+### Database Backups
+
+```bash
+# Create volume snapshot
+flyctl volumes snapshot create --app sdlc-agents-db
+
+# List snapshots
+flyctl volumes snapshot list --app sdlc-agents-db
+```
+
+## Troubleshooting
+
+### Common Issues
+
+1. **Database Connection Errors**:
+   ```bash
+   # Check database status
+   flyctl status --app sdlc-agents-db
+
+   # Check database logs
+   flyctl logs --app sdlc-agents-db
+   ```
+
+2. **API Not Starting**:
+   ```bash
+   # Check API logs
+   flyctl logs --app sdlc-agents-api
+
+   # Check secrets
+   flyctl secrets list --app sdlc-agents-api
+   ```
+
+3. **Web Not Loading**:
+   ```bash
+   # Check Web logs
+   flyctl logs --app sdlc-agents-web
+
+   # Check if API is accessible
+   curl https://your-api.fly.dev/health
+   ```
+
+### Debug Commands
+
+```bash
+# SSH into API machine
+flyctl ssh console --app sdlc-agents-api
+
+# SSH into Web machine
+flyctl ssh console --app sdlc-agents-web
+
+# Check machine metrics
+flyctl metrics --app sdlc-agents-api
+```
+
+## Security
+
+### Security Checklist
+
+- [ ] Set strong `SECRET_KEY`
+- [ ] Use HTTPS (automatic with Fly.io)
+- [ ] Configure CORS properly
+- [ ] Set up OAuth redirect URIs correctly
+- [ ] Monitor logs for security issues
+- [ ] Regular security updates
+
+### OAuth Redirect URIs
+
+Ensure your OAuth applications use the correct redirect URIs:
+
+- **Notion**: `https://your-web.fly.dev/api/auth/notion`
+- **GitHub**: `https://your-web.fly.dev/api/auth/github`
+- **Atlassian**: `https://your-web.fly.dev/api/auth/atlassian`
+
+## Cost Optimization
+
+### Auto-scaling
+
+Fly.io automatically scales down to 0 when not in use (with `auto_stop_machines = true`).
+
+### Resource Optimization
+
+```bash
+# Check current resource usage
+flyctl metrics --app sdlc-agents-api
+
+# Adjust machine size if needed
+flyctl scale vm shared-cpu-1x --app sdlc-agents-api
+```
+
+## Support
+
+For issues with Fly.io deployment:
+
+1. Check the [Fly.io Documentation](https://fly.io/docs/)
+2. Review service logs: `flyctl logs --app <app-name>`
+3. Check service status: `flyctl status --app <app-name>`
+4. Contact Fly.io support if needed
+
+## Migration from Railway
+
+If migrating from Railway:
+
+1. Export your Railway environment variables
+2. Set them as Fly.io secrets using `flyctl secrets set`
+3. Update your OAuth redirect URIs
+4. Test all integrations thoroughly
+5. Update your DNS records if using custom domains

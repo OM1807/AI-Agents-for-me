@@ -276,7 +276,7 @@ events_to_ui_message_stream()  # AI SDK v5 UI stream
 |-----------|-----------|---------|
 | **Containerization** | Docker | Application packaging |
 | **Orchestration** | Docker Compose | Multi-container management |
-| **Deployment** | Railway | Cloud hosting (API) |
+| **Deployment** | Fly.io | Cloud hosting (API) |
 | **Build System** | Turborepo | Monorepo build orchestration |
 | **Package Manager** | pnpm | Node.js dependency management |
 | **Dependency Manager** | Poetry | Python dependency management |
@@ -745,10 +745,10 @@ pool_pre_ping=True  # Health check before use
 
 ```
 ┌─────────────────────────────────────────────┐
-│  Cloud Infrastructure (Railway/Vercel)      │
+│  Cloud Infrastructure (Fly.io/Vercel)      │
 │  ┌─────────────┐         ┌─────────────┐  │
 │  │ Next.js App │◄────────┤ API Gateway │  │
-│  │ (Vercel)    │         │ (Railway)   │  │
+│  │ (Vercel)    │         │ (Fly.io)   │  │
 │  └─────────────┘         └─────────────┘  │
 │                                             │
 │  ┌─────────────────────────────────────┐  │
@@ -771,7 +771,7 @@ GitHub Actions
     ├─ Run Tests
     ├─ Build Docker Images
     └─ Deploy
-        ├─ Deploy API (Railway)
+        ├─ Deploy API (Fly.io)
         └─ Deploy Web (Vercel)
 ```
 
