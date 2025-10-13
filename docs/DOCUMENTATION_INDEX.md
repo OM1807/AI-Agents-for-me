@@ -1,6 +1,6 @@
-# SDLC Agents - Documentation Index
+# DevOrbit AI - Documentation Index
 
-Welcome to the comprehensive documentation for the SDLC Agents platform. This index will guide you to the right documentation based on your needs.
+Welcome to the comprehensive documentation for the DevOrbit AI platform. This index will guide you to the right documentation based on your needs.
 
 ---
 
@@ -151,9 +151,9 @@ Welcome to the comprehensive documentation for the SDLC Agents platform. This in
 
 ## 🏗️ Platform Overview
 
-### What is SDLC Agents?
+### What is DevOrbit AI?
 
-SDLC Agents is a comprehensive AI-powered platform for automating software development lifecycle tasks. It consists of:
+DevOrbit AI is a comprehensive AI-powered platform for automating software development lifecycle tasks. It consists of:
 
 **6 Specialized AI Agents**:
 1. **Code Analysis Agent** - Analyze repositories and generate documentation
@@ -233,7 +233,7 @@ When you see placeholders like these, replace them with your actual values:
 1. **Clone the repository**:
    ```bash
    git clone <repository-url>
-   cd sdlc-agents
+   cd devorbit-ai
    ```
 
 2. **Backend setup**:
@@ -377,13 +377,13 @@ When making significant changes to the codebase:
 Current Documentation Version: **1.0.0** (Generated: 2024)
 
 Based on:
-- Backend: SDLC Agents API v1.0.0
-- Frontend: @sdlc-agents/web v0.1.0
+- Backend: DevOrbit AI API v1.0.0
+- Frontend: @devorbit-ai/web v0.1.0
 
 ---
 
 ## 🎉 Conclusion
 
-This documentation suite provides comprehensive coverage of the SDLC Agents platform. Whether you're developing new features, deploying to production, or integrating with the API, you'll find the information you need in these guides.
+This documentation suite provides comprehensive coverage of the DevOrbit AI platform. Whether you're developing new features, deploying to production, or integrating with the API, you'll find the information you need in these guides.
 
 **Happy building! 🚀**

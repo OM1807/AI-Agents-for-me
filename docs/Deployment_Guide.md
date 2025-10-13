@@ -1,4 +1,4 @@
-# SDLC Agents - Deployment Guide
+# DevOrbit AI - Deployment Guide
 
 ## Table of Contents
 1. [Deployment Overview](#deployment-overview)
@@ -15,7 +15,7 @@
 
 ## Deployment Overview
 
-The SDLC Agents platform consists of three main components that need to be deployed:
+The DevOrbit AI platform consists of three main components that need to be deployed:
 
 1. **FastAPI Backend** - Python API server
 2. **Next.js Frontend** - React web application
@@ -86,7 +86,7 @@ Create a `.env` file in `apps/api/`:
 # ===========================================
 ENVIRONMENT=production
 DEBUG=false
-PROJECT_NAME="SDLC Agents API"
+PROJECT_NAME="DevOrbit AI API"
 VERSION=1.0.0
 API_V1_STR=/api/v1
 
@@ -316,7 +316,7 @@ version: '3.8'
 
 services:
   api:
-    image: your-registry.com/sdlc-agents-api:latest
+    image: your-registry.com/devorbit-ai-api:latest
     ports:
       - "8000:8000"
     env_file:
@@ -330,7 +330,7 @@ services:
     environment:
       POSTGRES_USER: sdlc_user
       POSTGRES_PASSWORD: secure_password
-      POSTGRES_DB: sdlc_agents
+      POSTGRES_DB: devorbit_ai
     volumes:
       - postgres_data:/var/lib/postgresql/data
     restart: unless-stopped
@@ -836,7 +836,7 @@ psql $DATABASE_URL
 SELECT * FROM pg_stat_activity;
 
 # Check database size
-SELECT pg_size_pretty(pg_database_size('sdlc_agents'));
+SELECT pg_size_pretty(pg_database_size('devorbit_ai'));
 ```
 
 ---
@@ -927,8 +927,8 @@ aws s3 cp agents_backup_20240101.tar.gz s3://your-bucket/backups/
 ### Vertical Scaling
 
 **Fly.io**:
-- Scale machines with `flyctl scale count 2 --app sdlc-agents-api`
-- Upgrade machine size with `flyctl scale vm shared-cpu-2x --app sdlc-agents-api`
+- Scale machines with `flyctl scale count 2 --app devorbit-ai-api`
+- Upgrade machine size with `flyctl scale vm shared-cpu-2x --app devorbit-ai-api`
 - Monitor CPU and memory usage in dashboard
 
 **Railway/Render**:
@@ -1018,7 +1018,7 @@ psql $DATABASE_URL < backup_20240101.sql
 
 ## Conclusion
 
-This deployment guide provides comprehensive instructions for deploying SDLC Agents to production. For the most reliable and scalable deployment:
+This deployment guide provides comprehensive instructions for deploying DevOrbit AI to production. For the most reliable and scalable deployment:
 
 ✅ **Backend**: Fly.io with managed PostgreSQL
 ✅ **Frontend**: Fly.io for unified deployment

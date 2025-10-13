@@ -74,7 +74,8 @@ const DashboardPage = () => {
           {isHydrated ? `Welcome back ${getDisplayName()}` : 'Welcome back!'}
         </h1>
         <p className='text-muted-foreground'>
-          Your comprehensive SDLC automation and intelligence platform.
+          Unified workspace for engineering excellence, quality assurance, and
+          strategic product delivery.
         </p>
       </div>
 
@@ -117,11 +118,11 @@ const DashboardPage = () => {
           </h2>
           <div className='text-center'>
             <h3 className='mb-2 text-xl font-semibold text-gray-900 dark:text-gray-100'>
-              Choose Your SDLC Focus Area
+              Select Your Workflow Domain
             </h3>
             <p className='text-muted-foreground text-sm'>
-              Start with the module that matters most to your role, or explore
-              the complete platform
+              Navigate to the capabilities most relevant to your current
+              objectives
             </p>
           </div>
         </div>
@@ -150,8 +151,8 @@ const DashboardPage = () => {
 
               {/* Description */}
               <p className='mb-4 text-sm leading-relaxed text-gray-600 dark:text-gray-400'>
-                AI-powered code reviews, Documentation, intelligent code
-                generation, and comprehensive repository management
+                Intelligent code analysis, automated documentation, and
+                streamlined version control operations
               </p>
 
               {/* Key Features Section */}
@@ -162,13 +163,13 @@ const DashboardPage = () => {
 
                 <div className='flex flex-wrap gap-2'>
                   <span className='rounded-full bg-blue-100 px-3 py-1 text-xs font-medium text-blue-800'>
-                    Smart Code Review
+                    Automated Review
                   </span>
                   <span className='rounded-full bg-blue-100 px-3 py-1 text-xs font-medium text-blue-800'>
-                    AI Generation
+                    Intelligent Synthesis
                   </span>
                   <span className='rounded-full bg-blue-100 px-3 py-1 text-xs font-medium text-blue-800'>
-                    Repository Management
+                    Source Control
                   </span>
                 </div>
 
@@ -176,15 +177,15 @@ const DashboardPage = () => {
                 <div className='mt-4 space-y-1'>
                   <div className='flex items-center text-sm text-gray-600 dark:text-gray-400'>
                     <span className='mr-2'>🔗</span>
-                    <span>Integration with GitHub, GitLab, Bitbucket</span>
+                    <span>Works with GitHub, GitLab, Bitbucket</span>
                   </div>
                   <div className='flex items-center text-sm text-gray-600 dark:text-gray-400'>
                     <span className='mr-2'>⚡</span>
-                    <span>Real-time code analysis & suggestions</span>
+                    <span>Live code insights and recommendations</span>
                   </div>
                   <div className='flex items-center text-sm text-gray-600 dark:text-gray-400'>
                     <span className='mr-2'>📝</span>
-                    <span>Automated documentation generation</span>
+                    <span>Self-generating technical documentation</span>
                   </div>
                 </div>
               </div>
@@ -213,8 +214,8 @@ const DashboardPage = () => {
 
               {/* Description */}
               <p className='mb-4 text-sm leading-relaxed text-gray-600 dark:text-gray-400'>
-                Automated test generation, intelligent test execution, and
-                comprehensive defect management
+                Automated test creation, smart execution workflows, and
+                comprehensive issue tracking
               </p>
 
               {/* Key Features Section */}
@@ -225,13 +226,13 @@ const DashboardPage = () => {
 
                 <div className='flex flex-wrap gap-2'>
                   <span className='rounded-full bg-purple-100 px-3 py-1 text-xs font-medium text-purple-800'>
-                    AI Test Generation
+                    Intelligent Test Creation
                   </span>
                   <span className='rounded-full bg-purple-100 px-3 py-1 text-xs font-medium text-purple-800'>
-                    Automated Execution
+                    Orchestrated Runs
                   </span>
                   <span className='rounded-full bg-purple-100 px-3 py-1 text-xs font-medium text-purple-800'>
-                    Defect Tracking
+                    Issue Management
                   </span>
                 </div>
 
@@ -239,15 +240,15 @@ const DashboardPage = () => {
                 <div className='mt-4 space-y-1'>
                   <div className='flex items-center text-sm text-gray-600 dark:text-gray-400'>
                     <span className='mr-2'>🔗</span>
-                    <span>Integration with Jira, TestRail, Selenium</span>
+                    <span>Compatible with Jira, TestRail, Selenium</span>
                   </div>
                   <div className='flex items-center text-sm text-gray-600 dark:text-gray-400'>
                     <span className='mr-2'>⚡</span>
-                    <span>Bug Report Analyzer</span>
+                    <span>Automated defect analysis</span>
                   </div>
                   <div className='flex items-center text-sm text-gray-600 dark:text-gray-400'>
                     <span className='mr-2'>🧪</span>
-                    <span>Performance and security testing</span>
+                    <span>Load and vulnerability assessment</span>
                   </div>
                 </div>
               </div>
@@ -276,8 +277,8 @@ const DashboardPage = () => {
 
               {/* Description */}
               <p className='mb-4 text-sm leading-relaxed text-gray-600 dark:text-gray-400'>
-                Transform requirements into actionable tickets with AI-powered
-                analysis and intelligent project planning
+                Convert specifications into structured work items with
+                intelligent parsing and roadmap coordination
               </p>
 
               {/* Key Features Section */}
@@ -288,13 +289,13 @@ const DashboardPage = () => {
 
                 <div className='flex flex-wrap gap-2'>
                   <span className='rounded-full bg-green-100 px-3 py-1 text-xs font-medium text-green-800'>
-                    Requirements Analysis
+                    Specification Parsing
                   </span>
                   <span className='rounded-full bg-green-100 px-3 py-1 text-xs font-medium text-green-800'>
-                    Ticket Generation
+                    Work Item Creation
                   </span>
                   <span className='rounded-full bg-green-100 px-3 py-1 text-xs font-medium text-green-800'>
-                    Project Planning
+                    Roadmap Orchestration
                   </span>
                 </div>
 
@@ -302,15 +303,15 @@ const DashboardPage = () => {
                 <div className='mt-4 space-y-1'>
                   <div className='flex items-center text-sm text-gray-600 dark:text-gray-400'>
                     <span className='mr-2'>🔗</span>
-                    <span>Integration with Jira, Confluence, Notion</span>
+                    <span>Syncs with Jira, Confluence, Notion</span>
                   </div>
                   <div className='flex items-center text-sm text-gray-600 dark:text-gray-400'>
                     <span className='mr-2'>📋</span>
-                    <span>Automated ticket creation & prioritization</span>
+                    <span>Structured task breakdown and ranking</span>
                   </div>
                   <div className='flex items-center text-sm text-gray-600 dark:text-gray-400'>
                     <span className='mr-2'>📊</span>
-                    <span>Sprint planning & backlog management</span>
+                    <span>Iteration scheduling and queue optimization</span>
                   </div>
                 </div>
               </div>
@@ -339,8 +340,8 @@ const DashboardPage = () => {
 
               {/* Description */}
               <p className='mb-4 text-sm leading-relaxed text-gray-600 dark:text-gray-400'>
-                Discover and utilize curated AI prompts for various development
-                and business scenarios
+                Explore pre-built instruction templates optimized for
+                engineering and strategic workflows
               </p>
 
               {/* Key Features Section */}
@@ -351,13 +352,13 @@ const DashboardPage = () => {
 
                 <div className='flex flex-wrap gap-2'>
                   <span className='rounded-full bg-orange-100 px-3 py-1 text-xs font-medium text-orange-800'>
-                    Curated Prompts
+                    Verified Instructions
                   </span>
                   <span className='rounded-full bg-orange-100 px-3 py-1 text-xs font-medium text-orange-800'>
-                    Custom Templates
+                    Reusable Patterns
                   </span>
                   <span className='rounded-full bg-orange-100 px-3 py-1 text-xs font-medium text-orange-800'>
-                    AI Optimization
+                    Refined Results
                   </span>
                 </div>
 
@@ -365,15 +366,15 @@ const DashboardPage = () => {
                 <div className='mt-4 space-y-1'>
                   <div className='flex items-center text-sm text-gray-600 dark:text-gray-400'>
                     <span className='mr-2'>📚</span>
-                    <span>Categorized prompt collections</span>
+                    <span>Organized template library by domain</span>
                   </div>
                   <div className='flex items-center text-sm text-gray-600 dark:text-gray-400'>
                     <span className='mr-2'>🎯</span>
-                    <span>Context-aware suggestions</span>
+                    <span>Situational recommendations</span>
                   </div>
                   <div className='flex items-center text-sm text-gray-600 dark:text-gray-400'>
                     <span className='mr-2'>⭐</span>
-                    <span>Community-driven ratings & reviews</span>
+                    <span>Peer-validated effectiveness scores</span>
                   </div>
                 </div>
               </div>

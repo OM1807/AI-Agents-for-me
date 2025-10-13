@@ -120,7 +120,7 @@ const Sidebar = () => {
       >
         {/* <LogoShort className='h-8 w-8 flex-shrink-0' /> */}
         {!isCollapsed && (
-          <span className='text-2xl font-bold'>SDLC Agents</span>
+          <span className='text-2xl font-bold'>DevOrbit AI</span>
         )}
       </div>
 

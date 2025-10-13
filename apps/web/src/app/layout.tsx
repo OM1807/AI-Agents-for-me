@@ -15,7 +15,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: 'SDLC Agents - Intelligent Development Assistant',
+  title: 'DevOrbit AI - Intelligent Development Assistant',
   description:
     'Your intelligent development assistant for enhanced productivity and code quality',
 };

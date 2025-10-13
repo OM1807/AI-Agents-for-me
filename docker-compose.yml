@@ -17,7 +17,7 @@ services:
       - api
     restart: always
     networks:
-      - sdlc_agents_network
+      - devorbit_ai_network
 
   api:
     build:
@@ -34,7 +34,7 @@ services:
       - STARTUP_LOCK_ID=424242
       - DB_CONNECT_MAX_RETRIES=30
       - DB_CONNECT_DELAY_SECONDS=2.0
-      - DATABASE_URL=postgresql+asyncpg://postgres:postgres@host.docker.internal:5433/sdlc_agents
+      - DATABASE_URL=postgresql+asyncpg://postgres:postgres@host.docker.internal:5433/devorbit_ai
       - AGENTS_DIR=/app/workspaces/
     depends_on:
       postgres:
@@ -47,13 +47,13 @@ services:
       retries: 3
       start_period: 40s
     networks:
-      - sdlc_agents_network
+      - devorbit_ai_network
 
   postgres:
     image: postgres:15-alpine
-    container_name: sdlc_agents_postgres
+    container_name: devorbit_ai_postgres
     environment:
-      POSTGRES_DB: sdlc_agents
+      POSTGRES_DB: devorbit_ai
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
       POSTGRES_INITDB_ARGS: "--locale=C.UTF-8"
@@ -64,16 +64,16 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres -d sdlc_agents"]
+      test: ["CMD-SHELL", "pg_isready -U postgres -d devorbit_ai"]
       interval: 10s
       timeout: 5s
       retries: 5
     networks:
-      - sdlc_agents_network
+      - devorbit_ai_network
 
 volumes:
   postgres_data:
 
 networks:
-  sdlc_agents_network:
+  devorbit_ai_network:
     driver: bridge

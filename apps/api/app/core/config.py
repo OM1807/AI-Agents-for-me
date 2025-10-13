@@ -16,7 +16,7 @@ class Settings(BaseSettings):
     """Application settings and configuration"""
 
     # API Configuration
-    PROJECT_NAME: str = Field(default="SDLC Agents API", description="Project name")
+    PROJECT_NAME: str = Field(default="DevOrbit AI API", description="Project name")
     VERSION: str = Field(default="1.0.0", description="API version")
     API_V1_STR: str = Field(default="/api/v1", description="API v1 prefix")
 

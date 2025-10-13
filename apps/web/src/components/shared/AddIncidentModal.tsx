@@ -142,9 +142,9 @@ export function AddIncidentModal({
           <div className='flex items-center gap-3'>
             {icon}
             <div>
-              <DialogTitle>Add Incident Link</DialogTitle>
+              <DialogTitle>Import Event Reference</DialogTitle>
               <DialogDescription>
-                Paste a {provider} incident URL to import its details
+                Provide {provider} incident URL to retrieve event data
               </DialogDescription>
             </div>
           </div>
@@ -154,7 +154,7 @@ export function AddIncidentModal({
           {/* URL Input */}
           <div className='space-y-2'>
             <Label htmlFor='incident-url'>
-              Incident URL <span className='text-red-500'>*</span>
+              Event Location <span className='text-red-500'>*</span>
             </Label>
             <div className='relative'>
               <LinkIcon className='text-muted-foreground absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2' />
@@ -168,7 +168,7 @@ export function AddIncidentModal({
               />
             </div>
             <p className='text-muted-foreground text-xs'>
-              Paste the full URL of the incident from {provider}
+              Enter the complete {provider} incident URL
             </p>
           </div>
         </div>

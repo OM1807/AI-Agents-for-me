@@ -61,9 +61,9 @@ export default function DevelopmentPage() {
       {/* Page Header */}
       <div className='space-y-4'>
         <p className='text-muted-foreground text-sm'>
-          Unlock the power of dedicated AI assistants to support every stage of
-          your SDLC journey—from understanding code to automating standards
-          checks, PR reviews, and Git operations.
+          Accelerate development velocity with specialized automation for code
+          comprehension, quality enforcement, pull request analysis, and
+          repository workflows.
         </p>
       </div>
 

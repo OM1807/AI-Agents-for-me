@@ -63,7 +63,7 @@ async def mock_agent_events() -> AsyncIterator[dict[str, Any]]:
     yield {
         "type": "tool_result",
         "toolCallId": "git_clone_12345_0",
-        "result": "Repository https://github.com/tejas96/augmento-ai-intelligent-chat-bot successfully cloned to: temp/12345/sdlc-agents-mvp",
+        "result": "Repository https://github.com/tejas96/augmento-ai-intelligent-chat-bot successfully cloned to: temp/12345/devorbit-ai-mvp",
     }
 
     yield {
@@ -71,15 +71,15 @@ async def mock_agent_events() -> AsyncIterator[dict[str, Any]]:
         "toolCallId": "git_clone_12345_1",
         "toolName": "git_clone",
         "args": {
-            "url": "https://github.com/tejas96/sdlc-agentst",
-            "prompt": "Cloning repository https://github.com/tejas96/sdlc-agents...",
+            "url": "https://github.com/tejas96/devorbit-ai",
+            "prompt": "Cloning repository https://github.com/tejas96/devorbit-ai...",
         },
     }
     await asyncio.sleep(1.8)  # Simulate second clone time
     yield {
         "type": "tool_result",
         "toolCallId": "git_clone_12345_1",
-        "result": "Repository https://github.com/tejas96/sdlc-agents successfully cloned to: temp/12345/sdlc-agents",
+        "result": "Repository https://github.com/tejas96/devorbit-ai successfully cloned to: temp/12345/devorbit-ai",
     }
 
     # 2. PLANNING PHASE
@@ -203,7 +203,7 @@ async def mock_agent_events() -> AsyncIterator[dict[str, Any]]:
     yield {
         "type": "tool_result",
         "toolCallId": "call_read_001",
-        "result": {"content": "# SDLC Agents\n\nProject documentation..."},
+        "result": {"content": "# DevOrbit AI\n\nProject documentation..."},
     }
 
     # Read package.json
@@ -217,7 +217,7 @@ async def mock_agent_events() -> AsyncIterator[dict[str, Any]]:
     yield {
         "type": "tool_result",
         "toolCallId": "call_read_002",
-        "result": {"content": '{"name": "sdlc-agents", "version": "1.0.0"}'},
+        "result": {"content": '{"name": "devorbit-ai", "version": "1.0.0"}'},
     }
 
     # Read main.py
@@ -329,7 +329,7 @@ async def mock_agent_events() -> AsyncIterator[dict[str, Any]]:
         "toolName": "create_file",
         "args": {
             "path": "CONTRIBUTING.md",
-            "content": "# Contributing Guide\n\nWelcome to SDLC Agents!\n\n## Development Setup\n\n1. Clone the repository\n2. Install dependencies\n3. Start development",
+            "content": "# Contributing Guide\n\nWelcome to DevOrbit AI!\n\n## Development Setup\n\n1. Clone the repository\n2. Install dependencies\n3. Start development",
         },
     }
     await asyncio.sleep(0.7)  # Larger file creation time

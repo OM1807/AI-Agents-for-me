@@ -86,8 +86,8 @@ export default function ProductManagementPage() {
       {/* Page Header */}
       <div className='space-y-4'>
         <p className='text-muted-foreground text-sm'>
-          Automated test generation, execution, and comprehensive defect
-          management
+          Transform product specifications into executable deliverables with
+          intelligent decomposition and priority optimization
         </p>
       </div>
 

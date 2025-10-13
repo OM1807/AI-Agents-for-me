@@ -584,7 +584,7 @@ const TestCaseViewer: React.FC<TestCaseViewerProps> = ({ data, append }) => {
                 <PopoverContent side='right' align='start' className='w-80 p-2'>
                   <div className='relative flex items-end'>
                     <Textarea
-                      placeholder='Ask anything about analysis or request clarification'
+                      placeholder='Query results or request additional details'
                       className='resize-none bg-gray-50 pr-12 focus:bg-white'
                       value={inputValue}
                       onChange={e => setInputValue(e.target.value)}

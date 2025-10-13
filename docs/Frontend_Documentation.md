@@ -1,4 +1,4 @@
-# SDLC Agents Frontend - Complete Documentation
+# DevOrbit AI Frontend - Complete Documentation
 
 ## Table of Contents
 1. [Overview](#overview)
@@ -17,7 +17,7 @@
 
 ## Overview
 
-The SDLC Agents web application is a modern Next.js 15 application built with TypeScript and React 19, providing an intuitive interface for AI-powered SDLC automation. It features real-time AI interactions, comprehensive third-party integrations, and agent-specific workflows for development, quality assurance, and product management tasks.
+The DevOrbit AI web application is a modern Next.js 15 application built with TypeScript and React 19, providing an intuitive interface for AI-powered SDLC automation. It features real-time AI interactions, comprehensive third-party integrations, and agent-specific workflows for development, quality assurance, and product management tasks.
 
 ### Key Features
 
@@ -1394,7 +1394,7 @@ describe('Component', () => {
 
 ## Conclusion
 
-The SDLC Agents frontend is a production-ready Next.js application with:
+The DevOrbit AI frontend is a production-ready Next.js application with:
 
 ✅ **Type Safety**: Comprehensive TypeScript coverage
 ✅ **State Management**: Robust Zustand stores with persistence

@@ -69,7 +69,7 @@ export default function PromptLibraryClient() {
               </Button>
             </div>
             <p className='text-muted-foreground'>
-              Use these prebuilt prompts to get the most out of your SDLC Agents
+              Use these prebuilt prompts to get the most out of your DevOrbit
               development tools.
             </p>
           </div>

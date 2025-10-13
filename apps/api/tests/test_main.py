@@ -10,7 +10,7 @@ def test_get_application() -> None:
     application = get_application()
 
     assert application is not None
-    assert application.title == "SDLC Agents API"
+    assert application.title == "DevOrbit AI API"
     assert application.version == "1.0.0"
 
 
@@ -137,7 +137,7 @@ def test_404_handler() -> None:
 def test_application_configuration() -> None:
     """Test application configuration."""
     # Test that the app has the correct configuration
-    assert app.title == "SDLC Agents API"
+    assert app.title == "DevOrbit AI API"
     assert app.version == "1.0.0"
     assert app.description is not None
 
@@ -152,7 +152,7 @@ def test_environment_variables() -> None:
     settings = get_settings()
 
     # Test that required settings are loaded
-    assert settings.PROJECT_NAME == "SDLC Agents API"
+    assert settings.PROJECT_NAME == "DevOrbit AI API"
     assert settings.VERSION == "1.0.0"
     assert settings.API_V1_STR == "/api/v1"
     assert settings.DEBUG is True  # Default in development

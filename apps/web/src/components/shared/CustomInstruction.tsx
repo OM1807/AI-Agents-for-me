@@ -39,7 +39,7 @@ export function CustomInstruction({ className }: CustomInstructionProps) {
             <div className='rounded-full border border-gray-200 p-2'>
               <TerminalIcon className='h-4 w-4' />
             </div>
-            <h3 className='font-semibold'>Custom Instructions</h3>
+            <h3 className='font-semibold'>Additional Directives</h3>
           </div>
         </AccordionTrigger>
         <AccordionContent className='border-t'>
@@ -48,7 +48,7 @@ export function CustomInstruction({ className }: CustomInstructionProps) {
               value={userPrompt}
               onChange={e => setUserPrompt(e.target.value)}
               className='min-h-[150px] resize-none rounded-none border-none px-4 py-2 font-mono text-sm'
-              placeholder='Enter your custom instructions...'
+              placeholder='Provide specific guidance for the analysis engine...'
             />
             <div className='flex justify-end gap-2 rounded-b-md border-0 bg-gray-50 p-2'>
               <Button variant='ghost' size='sm' onClick={handleCopyPrompt}>

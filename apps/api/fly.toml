@@ -1,5 +1,5 @@
-# Fly.io configuration for SDLC Agents API
-app = "sdlc-api"
+# Fly.io configuration for DevOrbit AI API
+app = "devorbit-ai-api"
 primary_region = "bom"
 
 [build]
@@ -8,7 +8,7 @@ primary_region = "bom"
 [env]
   ENVIRONMENT = "production"
   DEBUG = "false"
-  PROJECT_NAME = "SDLC Agents API"
+  PROJECT_NAME = "DevOrbit AI API"
   VERSION = "1.0.0"
   API_V1_STR = "/api/v1"
   HOST = "0.0.0.0"
@@ -49,5 +49,5 @@ primary_region = "bom"
   memory_mb = 1024
 
 [mounts]
-  source = 'sdlc_agents_postgres_data'
+  source = 'devorbit_ai_postgres_data'
   destination = '/mnt/shared_data'

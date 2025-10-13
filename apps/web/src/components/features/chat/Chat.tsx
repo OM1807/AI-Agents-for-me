@@ -213,7 +213,7 @@ export default function Chat({ sessionID, regenerate }: ChatProps) {
       };
     } else {
       return {
-        title: 'SDLC Agents',
+        title: 'DevOrbit AI',
         description: 'Ask questions about your analysis',
       };
     }
@@ -650,10 +650,10 @@ export default function Chat({ sessionID, regenerate }: ChatProps) {
               <div className='flex h-full items-center justify-center'>
                 <div className='space-y-2 text-center'>
                   <h3 className='text-lg font-medium text-stone-600'>
-                    Analysis Chat
+                    Diagnostic Console
                   </h3>
                   <p className='text-sm text-stone-500'>
-                    Watch as the AI analyzes your repositories
+                    Monitor automated analysis progress in real-time
                   </p>
                 </div>
               </div>
@@ -674,7 +674,7 @@ export default function Chat({ sessionID, regenerate }: ChatProps) {
               <div className='rounded-lg border border-red-200 bg-red-50 p-4'>
                 <div className='flex items-center justify-between'>
                   <p className='text-sm font-medium text-red-800'>
-                    Error occurred
+                    Operation interrupted
                   </p>
                   <Button
                     variant='outline'
