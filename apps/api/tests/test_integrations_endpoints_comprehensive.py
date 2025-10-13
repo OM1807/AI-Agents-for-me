@@ -12,10 +12,11 @@ from typing import Any
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
+from fastapi import HTTPException, status
+
 from app.integrations.enums import AuthType, IntegrationProvider
 from app.models.integration import Integration
 from app.models.user import User
-from fastapi import HTTPException, status
 
 
 def create_mock_integration_response() -> MagicMock:
@@ -149,9 +150,10 @@ class TestIntegrationEndpointsComprehensive:
         mock_validation = create_mock_validation_service()
 
         # Import the endpoint function directly
+        from fastapi import HTTPException
+
         from app.api.v1.endpoints.integrations import create_integration
         from app.schemas.integration import IntegrationCreate
-        from fastapi import HTTPException
 
         # Create the request model
         integration_create = IntegrationCreate(**sample_integration_create_data)
@@ -234,8 +236,9 @@ class TestIntegrationEndpointsComprehensive:
         mock_crud = create_mock_crud()
         mock_crud.get_by_id.return_value = None
         # Import the endpoint function directly
-        from app.api.v1.endpoints.integrations import get_integration
         from fastapi import HTTPException
+
+        from app.api.v1.endpoints.integrations import get_integration
 
         # Mock the services
         with patch("app.api.v1.endpoints.integrations.IntegrationCRUD", return_value=mock_crud):
@@ -259,8 +262,9 @@ class TestIntegrationEndpointsComprehensive:
         wrong_user_integration.created_by = 999  # Different user
         mock_crud.get_by_id.return_value = wrong_user_integration
         # Import the endpoint function directly
-        from app.api.v1.endpoints.integrations import get_integration
         from fastapi import HTTPException
+
+        from app.api.v1.endpoints.integrations import get_integration
 
         # Mock the services
         with patch("app.api.v1.endpoints.integrations.IntegrationCRUD", return_value=mock_crud):

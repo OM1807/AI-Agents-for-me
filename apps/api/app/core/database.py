@@ -2,6 +2,7 @@
 
 from collections.abc import AsyncGenerator
 from contextlib import asynccontextmanager
+from typing import Any
 
 from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession, async_sessionmaker, create_async_engine
 
@@ -20,7 +21,7 @@ def get_engine() -> AsyncEngine:
         settings = get_settings()
 
         # Base engine arguments
-        engine_args = {
+        engine_args: dict[str, Any] = {
             "echo": settings.DATABASE_ECHO,
         }
 

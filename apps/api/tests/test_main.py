@@ -1,8 +1,9 @@
 """Tests for main application module."""
 
 import pytest
-from app.main import app, get_application
 from fastapi.testclient import TestClient
+
+from app.main import app, get_application
 
 
 def test_get_application() -> None:

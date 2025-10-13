@@ -22,7 +22,8 @@ export const useHeaderStore = create<HeaderState>()(
         isCollapsed: false,
         setIsCollapsed: (isCollapsed: boolean) => set(() => ({ isCollapsed })),
         resetIsCollapsed: () => set(() => ({ isCollapsed: false })),
-        resetAll: () => set(() => ({ title: 'SDLC Agents', isCollapsed: false })),
+        resetAll: () =>
+          set(() => ({ title: 'SDLC Agents', isCollapsed: false })),
       }),
       {
         name: 'header-store',
