@@ -13,6 +13,7 @@ primary_region = "bom"
   API_V1_STR = "/api/v1"
   HOST = "0.0.0.0"
   PORT = "8000"
+  BACKEND_CORS_ORIGINS = "https://devorbit-ai.fly.dev,http://localhost:3000"
   DB_POOL_SIZE = "20"
   DB_MAX_OVERFLOW = "40"
   DB_POOL_TIMEOUT = "30"
@@ -35,12 +36,12 @@ primary_region = "bom"
   min_machines_running = 0
   processes = ["app"]
 
-# [[http_service.checks]]
-#   grace_period = "10s"
-#   interval = "30s"
-#   method = "GET"
-#   timeout = "5s"
-#   path = "/health"
+[[http_service.checks]]
+  grace_period = "10s"
+  interval = "30s"
+  method = "GET"
+  timeout = "5s"
+  path = "/health"
 
 [[vm]]
   cpu_kind = "shared"
