@@ -24,7 +24,14 @@ COPY . .
 COPY --from=deps /app/node_modules ./node_modules
 COPY --from=deps /app/package.json ./
 
+# Build-time environment variables with localhost defaults for local dev
+# These will be overridden by build args in fly.toml or docker-compose
+ARG NEXT_PUBLIC_API_URL=http://localhost:8000/api/v1
+ARG NEXT_PUBLIC_APP_URL=http://localhost:3000
+
 ENV NEXT_TELEMETRY_DISABLED=1
+ENV NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL
+ENV NEXT_PUBLIC_APP_URL=$NEXT_PUBLIC_APP_URL
 
 RUN \
     if [ -f yarn.lock ]; then yarn run build; \

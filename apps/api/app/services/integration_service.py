@@ -130,9 +130,10 @@ class IntegrationService:
             return None
 
         # validate credentials and persist any enrichment (e.g., cloud_id)
-        validated_creds = await self.oauth_manager.validate_credentials(integration.type, update_data.credentials)
-        if validated_creds:
-            update_data.credentials.update(validated_creds)
+        if update_data.credentials:
+            validated_creds = await self.oauth_manager.validate_credentials(integration.type, update_data.credentials)
+            if validated_creds:
+                update_data.credentials.update(validated_creds)
 
         updated_integration = await self.crud.update_integration(db_obj=integration, obj_in=update_data)
 
@@ -163,9 +164,12 @@ class IntegrationService:
         if token_result.credentials_updated and token_result.updated_credentials:
             try:
                 update_data = IntegrationUpdate(
+                    name=None,
                     auth_type=integration.auth_type,
+                    token=None,
                     credentials=token_result.updated_credentials,
                     is_active=integration.is_active,
+                    mcp_config=None,
                 )
                 await self.crud.update_integration(db_obj=integration, obj_in=update_data)
                 logger.info(f"Updated credentials for integration {integration_id} due to token rotation")

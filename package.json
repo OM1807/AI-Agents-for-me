@@ -27,12 +27,7 @@
     "docker:logs:api": "docker-compose logs -f api",
     "docker:logs:web": "docker-compose logs -f web",
     "setup:env": "cp .env.example .env && echo 'Environment file created! Please edit .env to configure your settings.'",
-    "setup": "pnpm install && pnpm run install:api && pnpm run setup:env",
-    "deploy:railway": "cd apps/api && railway up",
-    "railway:init": "cd apps/api && railway init",
-    "railway:domain": "cd apps/api && railway domain",
-    "railway:logs": "cd apps/api && railway logs",
-    "railway:status": "cd apps/api && railway status"
+    "setup": "pnpm install && pnpm run install:api && pnpm run setup:env"
   },
   "devDependencies": {
     "concurrently": "^8.2.0",

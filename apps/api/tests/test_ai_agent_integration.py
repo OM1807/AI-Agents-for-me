@@ -25,7 +25,6 @@ class TestAIAgentIntegration:
             module=AgentModule.DEVELOPMENT,
             tags=["integration", "testing", "documentation"],
             is_active=True,
-            system_prompt="You are an integration test agent.",
             custom_properties_schema={
                 "type": "object",
                 "properties": {"test_mode": {"type": "boolean", "default": True}},
@@ -52,7 +51,6 @@ class TestAIAgentIntegration:
             "module": sample_agent_model.module,
             "tags": sample_agent_model.tags,
             "is_active": sample_agent_model.is_active,
-            "system_prompt": sample_agent_model.system_prompt,
             "custom_properties_schema": sample_agent_model.custom_properties_schema,
             "created_at": sample_agent_model.created_at,
             "updated_at": sample_agent_model.updated_at,
@@ -68,7 +66,6 @@ class TestAIAgentIntegration:
         assert response.module == sample_agent_model.module
         assert response.tags == sample_agent_model.tags
         assert response.is_active == sample_agent_model.is_active
-        assert response.system_prompt == sample_agent_model.system_prompt
         assert response.custom_properties_schema == sample_agent_model.custom_properties_schema
 
     def test_model_tag_operations_integration(self, sample_agent_model):
@@ -90,7 +87,6 @@ class TestAIAgentIntegration:
             "module": sample_agent_model.module,
             "tags": sample_agent_model.tags,
             "is_active": sample_agent_model.is_active,
-            "system_prompt": sample_agent_model.system_prompt,
             "custom_properties_schema": sample_agent_model.custom_properties_schema,
             "created_at": sample_agent_model.created_at,
             "updated_at": sample_agent_model.updated_at,
@@ -125,7 +121,6 @@ class TestAIAgentIntegration:
                 "module": agent.module,
                 "tags": agent.tags,
                 "is_active": agent.is_active,
-                "system_prompt": agent.system_prompt,
                 "custom_properties_schema": agent.custom_properties_schema,
                 "created_at": agent.created_at,
                 "updated_at": agent.updated_at,
@@ -152,7 +147,6 @@ class TestAIAgentIntegration:
                 module=AgentModule.DEVELOPMENT,
                 tags=["documentation"],
                 is_active=True,
-                system_prompt="Documentation expert",
                 custom_properties_schema={},
                 created_at=datetime.now(),
                 updated_at=datetime.now(),
@@ -167,7 +161,6 @@ class TestAIAgentIntegration:
                 module=AgentModule.QUALITY_ASSURANCE,
                 tags=["testing", "automation"],
                 is_active=True,
-                system_prompt="Testing expert",
                 custom_properties_schema={},
                 created_at=datetime.now(),
                 updated_at=datetime.now(),
@@ -182,7 +175,6 @@ class TestAIAgentIntegration:
                 module=AgentModule.PROJECT_MANAGEMENT,
                 tags=["jira", "project_management"],
                 is_active=False,
-                system_prompt="JIRA specialist",
                 custom_properties_schema={},
                 created_at=datetime.now(),
                 updated_at=datetime.now(),
@@ -236,7 +228,6 @@ class TestAIAgentIntegration:
                     "module": module,
                     "tags": [],
                     "is_active": True,
-                    "system_prompt": "Test prompt",
                     "custom_properties_schema": {},
                     "created_at": datetime.now(),
                     "updated_at": datetime.now(),
@@ -270,7 +261,6 @@ class TestAIAgentIntegration:
             "module": sample_agent_model.module,
             "tags": sample_agent_model.tags,
             "is_active": sample_agent_model.is_active,
-            "system_prompt": sample_agent_model.system_prompt,
             "custom_properties_schema": sample_agent_model.custom_properties_schema,
             "created_at": sample_agent_model.created_at,
             "updated_at": sample_agent_model.updated_at,

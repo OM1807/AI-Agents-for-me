@@ -1,5 +1,6 @@
 """Claude Code orchestration for agent workflows."""
 
+import os
 import re
 from collections.abc import AsyncGenerator
 from copy import deepcopy
@@ -62,6 +63,14 @@ class ClaudeOrchestrator:
     ) -> None:
         """Initialize Claude orchestrator."""
         self.settings = get_settings()
+
+        # Set the Claude API key from config to environment variable
+        if self.settings.ANTHROPIC_API_KEY:
+            os.environ["CLAUDE_API_KEY"] = self.settings.ANTHROPIC_API_KEY
+            logger.info("Claude API key set from ANTHROPIC_API_KEY config")
+        else:
+            logger.warning("ANTHROPIC_API_KEY not found in config - Claude authentication may fail")
+
         # Configure Claude Code SDK options
         permission_mode = getattr(self.settings, "CLAUDE_PERMISSION_MODE", "bypassPermissions")
         if permission_mode not in ["default", "acceptEdits", "bypassPermissions"]:
