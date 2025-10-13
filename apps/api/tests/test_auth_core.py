@@ -70,7 +70,7 @@ async def test_get_user_by_email_found(db_session: AsyncSession) -> None:
         password="password123",
         provider=Provider.PASS,
     )
-    await user_crud.create(user_crud.session, obj_in=user_data)
+    await user_crud.create(obj_in=user_data)
 
     # Get user by email using CRUD layer
     found_user = await user_crud.get_by_email("test@example.com")
@@ -101,7 +101,7 @@ async def test_authenticate_user_success(db_session: AsyncSession) -> None:
         password="password123",
         provider=Provider.PASS,
     )
-    await user_crud.create(user_crud.session, obj_in=user_data)
+    await user_crud.create(obj_in=user_data)
 
     # Authenticate user using CRUD layer
     authenticated_user = await user_crud.authenticate(email="test@example.com", password="password123")
@@ -124,7 +124,7 @@ async def test_authenticate_user_wrong_password(db_session: AsyncSession) -> Non
         password="password123",
         provider=Provider.PASS,
     )
-    await user_crud.create(user_crud.session, obj_in=user_data)
+    await user_crud.create(obj_in=user_data)
 
     # Try to authenticate with wrong password using CRUD layer
     authenticated_user = await user_crud.authenticate(email="test@example.com", password="wrongpassword")
@@ -156,7 +156,7 @@ async def test_authenticate_user_inactive_user(db_session: AsyncSession) -> None
         password="password123",
         provider=Provider.PASS,
     )
-    created_user = await user_crud.create(user_crud.session, obj_in=user_data)
+    created_user = await user_crud.create(obj_in=user_data)
 
     # Manually set user as inactive
     created_user.is_active = False
@@ -200,7 +200,7 @@ async def test_get_current_user_success(db_session: AsyncSession) -> None:
         password="password123",
         provider=Provider.PASS,
     )
-    user = await user_crud.create(user_crud.session, obj_in=user_data)
+    user = await user_crud.create(obj_in=user_data)
 
     # Create valid token
     data = {"sub": str(user.id), "email": user.email}
@@ -248,7 +248,7 @@ async def test_get_current_user_inactive_user(db_session: AsyncSession) -> None:
         password="password123",
         provider=Provider.PASS,
     )
-    created_user = await user_crud.create(user_crud.session, obj_in=user_data)
+    created_user = await user_crud.create(obj_in=user_data)
 
     # Manually set user as inactive
     created_user.is_active = False

@@ -18,16 +18,26 @@ def get_engine() -> AsyncEngine:
     global engine
     if engine is None:
         settings = get_settings()
-        engine = create_async_engine(
-            settings.DATABASE_URL,
-            echo=settings.DATABASE_ECHO,
-            pool_pre_ping=True,
-            pool_recycle=settings.DB_POOL_RECYCLE,
-            pool_size=settings.DB_POOL_SIZE,
-            max_overflow=settings.DB_MAX_OVERFLOW,
-            pool_timeout=settings.DB_POOL_TIMEOUT,
-            pool_reset_on_return="commit",
-        )
+
+        # Base engine arguments
+        engine_args = {
+            "echo": settings.DATABASE_ECHO,
+        }
+
+        # Only add pool arguments for PostgreSQL (not SQLite)
+        if not settings.DATABASE_URL.startswith("sqlite"):
+            engine_args.update(
+                {
+                    "pool_pre_ping": True,
+                    "pool_recycle": settings.DB_POOL_RECYCLE,
+                    "pool_size": settings.DB_POOL_SIZE,
+                    "max_overflow": settings.DB_MAX_OVERFLOW,
+                    "pool_timeout": settings.DB_POOL_TIMEOUT,
+                    "pool_reset_on_return": "commit",
+                }
+            )
+
+        engine = create_async_engine(settings.DATABASE_URL, **engine_args)
     return engine
 
 

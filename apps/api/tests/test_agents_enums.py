@@ -1,6 +1,5 @@
 """Tests for agent enums."""
 
-
 from app.agents.enums import AgentIdentifier, AgentModule
 
 
@@ -12,6 +11,10 @@ class TestAgentIdentifier:
         expected_values = {
             "code_analysis",
             "test_case_generation",
+            "requirements_to_tickets",
+            "root_cause_analysis",
+            "code_reviewer",
+            "api_testing_suite",
         }
         actual_values = {ai.value for ai in AgentIdentifier}
         assert actual_values == expected_values
@@ -29,9 +32,13 @@ class TestAgentIdentifier:
     def test_agent_identifier_iteration(self):
         """Test that all agent identifiers can be iterated."""
         identifiers = list(AgentIdentifier)
-        assert len(identifiers) == 2
+        assert len(identifiers) == 6
         assert AgentIdentifier.CODE_ANALYSIS in identifiers
         assert AgentIdentifier.TEST_CASE_GENERATION in identifiers
+        assert AgentIdentifier.REQUIREMENTS_TO_TICKETS in identifiers
+        assert AgentIdentifier.ROOT_CAUSE_ANALYSIS in identifiers
+        assert AgentIdentifier.CODE_REVIEWER in identifiers
+        assert AgentIdentifier.API_TESTING_SUITE in identifiers
 
 
 class TestAgentModule:
