@@ -13,7 +13,7 @@ export default function Page() {
       <div>
         <h1 className='text-3xl font-bold tracking-tight'>Dashboard</h1>
         <p className='text-muted-foreground'>
-          Welcome to SDLC Agents - Your intelligent development assistant
+          Welcome to DevOrbit AI - Your intelligent development assistant
         </p>
       </div>
 

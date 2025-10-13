@@ -213,7 +213,7 @@ export default function Chat({ sessionID, regenerate }: ChatProps) {
       };
     } else {
       return {
-        title: 'SDLC Agents',
+        title: 'DevOrbit AI',
         description: 'Ask questions about your analysis',
       };
     }
