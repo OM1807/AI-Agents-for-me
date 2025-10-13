@@ -184,15 +184,18 @@ export function TestCaseConfiguration() {
                 <div className='ml-14 space-y-1 rounded-lg bg-gray-50 p-3 text-xs text-gray-600 dark:bg-gray-900 dark:text-gray-400'>
                   <ul className='list-disc pl-4'>
                     <li>Scenario ID: eg. TC-LOGIN-001</li>
-                    <li>Objective: eg. Validate authentication with valid credentials</li>
+                    <li>
+                      Objective: eg. Validate authentication with valid
+                      credentials
+                    </li>
                     <li>
                       Summary: eg. Confirm successful session establishment with
                       valid username and password combination.
                     </li>
                     <li>Importance Level: eg. Critical, Standard, Minor</li>
                     <li>
-                      Target Environment: eg. Chrome, Firefox, Safari, Windows, MacOS,
-                      etc.
+                      Target Environment: eg. Chrome, Firefox, Safari, Windows,
+                      MacOS, etc.
                     </li>
                   </ul>
                 </div>

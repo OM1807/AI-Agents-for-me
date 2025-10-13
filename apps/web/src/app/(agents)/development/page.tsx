@@ -61,7 +61,9 @@ export default function DevelopmentPage() {
       {/* Page Header */}
       <div className='space-y-4'>
         <p className='text-muted-foreground text-sm'>
-          Accelerate development velocity with specialized automation for code comprehension, quality enforcement, pull request analysis, and repository workflows.
+          Accelerate development velocity with specialized automation for code
+          comprehension, quality enforcement, pull request analysis, and
+          repository workflows.
         </p>
       </div>
 

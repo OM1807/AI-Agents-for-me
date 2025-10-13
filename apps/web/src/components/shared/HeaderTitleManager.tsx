@@ -11,16 +11,12 @@ const routeTitleMap: Record<string, string> = {
   '/development': 'Engineering Automation Hub',
   '/development/code-reviewer-agent': 'Automated Code Review Workspace',
   '/development/root-cause-analysis': 'Incident Investigation Center',
-  '/development/code-understanding':
-    'Codebase Intelligence Studio',
+  '/development/code-understanding': 'Codebase Intelligence Studio',
   '/quality-assurance': 'Testing & Validation Suite',
   '/quality-assurance/test-gen-ai-agent': 'Intelligent Test Generation Console',
-  '/quality-assurance/api-testing-suite-agent':
-    'API Validation Workshop',
-  '/quality-assurance/test-execution-agent':
-    'Test Runner Command Center',
-  '/quality-assurance/defect-management-agent':
-    'Issue Tracking Hub',
+  '/quality-assurance/api-testing-suite-agent': 'API Validation Workshop',
+  '/quality-assurance/test-execution-agent': 'Test Runner Command Center',
+  '/quality-assurance/defect-management-agent': 'Issue Tracking Hub',
   '/product-management': 'Product Strategy Workspace',
   '/product-management/requirement-to-ticket-agent':
     'Requirement Conversion Studio',

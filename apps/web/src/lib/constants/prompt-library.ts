@@ -51,7 +51,7 @@ export const PROMPT_LIBRARY: PromptData[] = [
     title: 'Validate Coding Conventions',
     category: 'Development',
     description:
-      "Assess implementation against established style guidelines and structural principles.",
+      'Assess implementation against established style guidelines and structural principles.',
     icon: CheckCircle,
     iconBgColor: 'bg-green-100 dark:bg-green-900/20',
     iconColor: 'text-green-600 dark:text-green-400',
@@ -83,7 +83,8 @@ export const PROMPT_LIBRARY: PromptData[] = [
     id: 'prd-summarizer',
     title: 'Specification Digest',
     category: 'Product Management',
-    description: 'Extract core objectives and deliverables from detailed requirement documents.',
+    description:
+      'Extract core objectives and deliverables from detailed requirement documents.',
     icon: MessageSquare,
     iconBgColor: 'bg-gray-100 dark:bg-gray-900/20',
     iconColor: 'text-gray-600 dark:text-gray-400',
@@ -93,7 +94,8 @@ export const PROMPT_LIBRARY: PromptData[] = [
     id: 'feature-comparison-analyzer',
     title: 'Option Evaluation Framework',
     category: 'Product Management',
-    description: 'Compare proposed capabilities across multiple decision factors.',
+    description:
+      'Compare proposed capabilities across multiple decision factors.',
     icon: Scale,
     iconBgColor: 'bg-indigo-100 dark:bg-indigo-900/20',
     iconColor: 'text-indigo-600 dark:text-indigo-400',
@@ -103,7 +105,8 @@ export const PROMPT_LIBRARY: PromptData[] = [
     id: 'feedback-to-feature-ideas',
     title: 'Insight Extraction Tool',
     category: 'Product Management',
-    description: 'Convert unstructured user input into prioritized enhancement opportunities.',
+    description:
+      'Convert unstructured user input into prioritized enhancement opportunities.',
     icon: CheckCircle2,
     iconBgColor: 'bg-emerald-100 dark:bg-emerald-900/20',
     iconColor: 'text-emerald-600 dark:text-emerald-400',

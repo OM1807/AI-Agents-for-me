@@ -74,7 +74,8 @@ const DashboardPage = () => {
           {isHydrated ? `Welcome back ${getDisplayName()}` : 'Welcome back!'}
         </h1>
         <p className='text-muted-foreground'>
-          Unified workspace for engineering excellence, quality assurance, and strategic product delivery.
+          Unified workspace for engineering excellence, quality assurance, and
+          strategic product delivery.
         </p>
       </div>
 
@@ -120,7 +121,8 @@ const DashboardPage = () => {
               Select Your Workflow Domain
             </h3>
             <p className='text-muted-foreground text-sm'>
-              Navigate to the capabilities most relevant to your current objectives
+              Navigate to the capabilities most relevant to your current
+              objectives
             </p>
           </div>
         </div>
@@ -149,7 +151,8 @@ const DashboardPage = () => {
 
               {/* Description */}
               <p className='mb-4 text-sm leading-relaxed text-gray-600 dark:text-gray-400'>
-                Intelligent code analysis, automated documentation, and streamlined version control operations
+                Intelligent code analysis, automated documentation, and
+                streamlined version control operations
               </p>
 
               {/* Key Features Section */}
@@ -211,7 +214,8 @@ const DashboardPage = () => {
 
               {/* Description */}
               <p className='mb-4 text-sm leading-relaxed text-gray-600 dark:text-gray-400'>
-                Automated test creation, smart execution workflows, and comprehensive issue tracking
+                Automated test creation, smart execution workflows, and
+                comprehensive issue tracking
               </p>
 
               {/* Key Features Section */}
@@ -273,7 +277,8 @@ const DashboardPage = () => {
 
               {/* Description */}
               <p className='mb-4 text-sm leading-relaxed text-gray-600 dark:text-gray-400'>
-                Convert specifications into structured work items with intelligent parsing and roadmap coordination
+                Convert specifications into structured work items with
+                intelligent parsing and roadmap coordination
               </p>
 
               {/* Key Features Section */}
@@ -335,7 +340,8 @@ const DashboardPage = () => {
 
               {/* Description */}
               <p className='mb-4 text-sm leading-relaxed text-gray-600 dark:text-gray-400'>
-                Explore pre-built instruction templates optimized for engineering and strategic workflows
+                Explore pre-built instruction templates optimized for
+                engineering and strategic workflows
               </p>
 
               {/* Key Features Section */}

@@ -86,7 +86,8 @@ export default function ProductManagementPage() {
       {/* Page Header */}
       <div className='space-y-4'>
         <p className='text-muted-foreground text-sm'>
-          Transform product specifications into executable deliverables with intelligent decomposition and priority optimization
+          Transform product specifications into executable deliverables with
+          intelligent decomposition and priority optimization
         </p>
       </div>
 

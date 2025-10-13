@@ -24,7 +24,8 @@ export default function CodeUnderstanding() {
   return (
     <div className='space-y-8'>
       <p className='text-muted-foreground mb-4 text-sm'>
-        Automated intelligence for mapping architecture and generating comprehensive system documentation.
+        Automated intelligence for mapping architecture and generating
+        comprehensive system documentation.
       </p>
 
       <div className='space-y-8'>

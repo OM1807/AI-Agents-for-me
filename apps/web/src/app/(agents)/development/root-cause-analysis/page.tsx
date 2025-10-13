@@ -36,7 +36,8 @@ export default function RootCauseAnalysis() {
   return (
     <div className='space-y-8'>
       <p className='text-muted-foreground mb-4 text-sm'>
-        Select a production event for automated diagnostic investigation and causal analysis.
+        Select a production event for automated diagnostic investigation and
+        causal analysis.
       </p>
 
       <div className='space-y-8'>
