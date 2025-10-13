@@ -169,7 +169,7 @@ Parameters: {"cloudId": "11cdd542-ff6a-4440-a6a2-568b9c2a4629", "issueIdOrKey": 
   "repository": {
     "provided": true|false,
     "url": "https://github.com/company/api-tests",
-    "working_branch": "sdlc-agents/automation-agent-1642743434343",
+    "working_branch": "devorbit-ai/automation-agent-1642743434343",
     "source_branch": "main",
     "cloned": true
   },

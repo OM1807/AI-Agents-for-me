@@ -1,4 +1,4 @@
-# Fly.io configuration for SDLC Agents Web
+# Fly.io configuration for DevOrbit AI Web
 app = "devorbit-ai"
 primary_region = "bom"
 

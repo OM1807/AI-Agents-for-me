@@ -1,4 +1,4 @@
-# Deployment Makefile for SDLC Agents API
+# Deployment Makefile for DevOrbit AI API
 # This Makefile orchestrates database migrations, seeding, and server startup
 # All operations are delegated to manage.py for consistency
 

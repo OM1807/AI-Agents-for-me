@@ -1,4 +1,4 @@
-# SDLC Agents - System Architecture Documentation
+# DevOrbit AI - System Architecture Documentation
 
 ## Table of Contents
 1. [Executive Summary](#executive-summary)
@@ -14,7 +14,7 @@
 
 ## Executive Summary
 
-SDLC Agents is a comprehensive AI-powered platform for automating software development lifecycle tasks. The system consists of a **FastAPI backend** that wraps the Claude Code SDK for AI agent orchestration and a **Next.js frontend** that provides a rich, type-safe user interface for interacting with various SDLC automation agents.
+DevOrbit AI is a comprehensive AI-powered platform for automating software development lifecycle tasks. The system consists of a **FastAPI backend** that wraps the Claude Code SDK for AI agent orchestration and a **Next.js frontend** that provides a rich, type-safe user interface for interacting with various SDLC automation agents.
 
 ### Key Capabilities
 - **AI-Powered Agents**: 6 specialized agents for development, QA, and product management workflows
@@ -107,7 +107,7 @@ graph TB
 The project uses a monorepo architecture with workspace organization:
 
 ```
-sdlc-agents/
+devorbit-ai/
 ├── apps/
 │   ├── web/          # Next.js frontend application
 │   └── api/          # FastAPI backend application
@@ -803,7 +803,7 @@ GitHub Actions
 
 ## Conclusion
 
-The SDLC Agents platform demonstrates a well-architected, modern full-stack application with:
+The DevOrbit AI platform demonstrates a well-architected, modern full-stack application with:
 
 ✅ **Modular Design**: Clear separation of concerns across all layers
 ✅ **Type Safety**: Comprehensive TypeScript and Pydantic validation

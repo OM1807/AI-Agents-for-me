@@ -1,6 +1,6 @@
-# SDLC Agents API
+# DevOrbit AI API
 
-A powerful FastAPI backend for SDLC Agents with Claude Code SDK streaming, PostgreSQL database integration, and JWT authentication.
+A powerful FastAPI backend for DevOrbit AI with Claude Code SDK streaming, PostgreSQL database integration, and JWT authentication.
 
 ## Features
 

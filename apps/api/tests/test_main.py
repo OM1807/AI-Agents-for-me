@@ -10,7 +10,7 @@ def test_get_application() -> None:
     application = get_application()
 
     assert application is not None
-    assert application.title == "SDLC Agents API"
+    assert application.title == "DevOrbit AI API"
     assert application.version == "1.0.0"
 
 

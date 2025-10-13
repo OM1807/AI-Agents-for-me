@@ -62,7 +62,7 @@ TYPE: ADHOC_REQUEST
    - Update github.published = true
    - Store GitHub URL
 5.Create summary comment on PR:
-   - Start with "**Code Review Summary** by "SDLC Agents Bot"
+   - Start with "**Code Review Summary** by "DevOrbit AI Bot"
    - Aggregate key findings and recommendations
    - Include total count of comments posted
    - Provide high-level overview of review results

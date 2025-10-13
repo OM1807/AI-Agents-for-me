@@ -1,8 +1,8 @@
 [tool.poetry]
-name = "sdlc-agents-api"
+name = "devorbit-ai-api"
 version = "1.0.0"
-description = "FastAPI backend for SDLC Agents with Claude Code SDK streaming"
-authors = ["SDLC Agents Team <team@sdlc-agents.com>"]
+description = "FastAPI backend for DevOrbit AI with Claude Code SDK streaming"
+authors = ["DevOrbit AI Team <team@devorbit-ai.com>"]
 readme = "README.md"
 packages = [{include = "app"}]
 

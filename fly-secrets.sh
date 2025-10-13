@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# SDLC Agents - Fly.io Secrets Configuration Script
+# DevOrbit AI - Fly.io Secrets Configuration Script
 # This script helps configure all required secrets for Fly.io deployment
 
 set -e
@@ -42,11 +42,11 @@ if ! flyctl auth whoami &> /dev/null; then
     exit 1
 fi
 
-print_header "SDLC Agents - Fly.io Secrets Configuration"
+print_header "DevOrbit AI - Fly.io Secrets Configuration"
 echo ""
 
 # API Secrets
-print_header "Configuring API Secrets (sdlc-agents-api)"
+print_header "Configuring API Secrets (devorbit-ai-api)"
 echo ""
 
 # Required secrets for API
@@ -61,14 +61,14 @@ else
     print_status "Using provided SECRET_KEY"
 fi
 
-flyctl secrets set SECRET_KEY="$SECRET_KEY" --app sdlc-agents-api
+flyctl secrets set SECRET_KEY="$SECRET_KEY" --app devorbit-ai-api
 
 # ANTHROPIC_API_KEY
 if [ -z "$ANTHROPIC_API_KEY" ]; then
     print_warning "ANTHROPIC_API_KEY not set. Please set it manually:"
-    echo "flyctl secrets set ANTHROPIC_API_KEY='your-anthropic-key' --app sdlc-agents-api"
+    echo "flyctl secrets set ANTHROPIC_API_KEY='your-anthropic-key' --app devorbit-ai-api"
 else
-    flyctl secrets set ANTHROPIC_API_KEY="$ANTHROPIC_API_KEY" --app sdlc-agents-api
+    flyctl secrets set ANTHROPIC_API_KEY="$ANTHROPIC_API_KEY" --app devorbit-ai-api
     print_status "Set ANTHROPIC_API_KEY"
 fi
 
@@ -80,26 +80,26 @@ print_status "Setting up optional API secrets..."
 
 # CORS origins
 if [ -n "$BACKEND_CORS_ORIGINS" ]; then
-    flyctl secrets set BACKEND_CORS_ORIGINS="$BACKEND_CORS_ORIGINS" --app sdlc-agents-api
+    flyctl secrets set BACKEND_CORS_ORIGINS="$BACKEND_CORS_ORIGINS" --app devorbit-ai-api
     print_status "Set BACKEND_CORS_ORIGINS"
 fi
 
 echo ""
-print_header "Configuring Web Secrets (sdlc-agents-web)"
+print_header "Configuring Web Secrets (devorbit-ai-web)"
 echo ""
 
 # Get API URL
-API_URL=$(flyctl status --app sdlc-agents-api --json 2>/dev/null | jq -r '.Hostname' 2>/dev/null || echo "")
+API_URL=$(flyctl status --app devorbit-ai-api --json 2>/dev/null | jq -r '.Hostname' 2>/dev/null || echo "")
 if [ -n "$API_URL" ] && [ "$API_URL" != "null" ]; then
     API_URL="https://${API_URL}"
 else
     print_warning "Could not determine API URL. Please set NEXT_PUBLIC_API_URL manually:"
-    echo "flyctl secrets set NEXT_PUBLIC_API_URL='https://your-api.fly.dev/api/v1' --app sdlc-agents-web"
+    echo "flyctl secrets set NEXT_PUBLIC_API_URL='https://your-api.fly.dev/api/v1' --app devorbit-ai-web"
 fi
 
 # NEXT_PUBLIC_API_URL
 if [ -n "$API_URL" ]; then
-    flyctl secrets set NEXT_PUBLIC_API_URL="${API_URL}/api/v1" --app sdlc-agents-web
+    flyctl secrets set NEXT_PUBLIC_API_URL="${API_URL}/api/v1" --app devorbit-ai-web
     print_status "Set NEXT_PUBLIC_API_URL to ${API_URL}/api/v1"
 fi
 
@@ -108,34 +108,34 @@ print_status "Setting up OAuth secrets..."
 
 # Notion
 if [ -n "$NEXT_PUBLIC_NOTION_CLIENT_ID" ]; then
-    flyctl secrets set NEXT_PUBLIC_NOTION_CLIENT_ID="$NEXT_PUBLIC_NOTION_CLIENT_ID" --app sdlc-agents-web
+    flyctl secrets set NEXT_PUBLIC_NOTION_CLIENT_ID="$NEXT_PUBLIC_NOTION_CLIENT_ID" --app devorbit-ai-web
     print_status "Set NEXT_PUBLIC_NOTION_CLIENT_ID"
 fi
 
 if [ -n "$NEXT_PUBLIC_NOTION_CLIENT_SECRET" ]; then
-    flyctl secrets set NEXT_PUBLIC_NOTION_CLIENT_SECRET="$NEXT_PUBLIC_NOTION_CLIENT_SECRET" --app sdlc-agents-web
+    flyctl secrets set NEXT_PUBLIC_NOTION_CLIENT_SECRET="$NEXT_PUBLIC_NOTION_CLIENT_SECRET" --app devorbit-ai-web
     print_status "Set NEXT_PUBLIC_NOTION_CLIENT_SECRET"
 fi
 
 # GitHub
 if [ -n "$NEXT_PUBLIC_GITHUB_CLIENT_ID" ]; then
-    flyctl secrets set NEXT_PUBLIC_GITHUB_CLIENT_ID="$NEXT_PUBLIC_GITHUB_CLIENT_ID" --app sdlc-agents-web
+    flyctl secrets set NEXT_PUBLIC_GITHUB_CLIENT_ID="$NEXT_PUBLIC_GITHUB_CLIENT_ID" --app devorbit-ai-web
     print_status "Set NEXT_PUBLIC_GITHUB_CLIENT_ID"
 fi
 
 if [ -n "$NEXT_PUBLIC_GITHUB_CLIENT_SECRET" ]; then
-    flyctl secrets set NEXT_PUBLIC_GITHUB_CLIENT_SECRET="$NEXT_PUBLIC_GITHUB_CLIENT_SECRET" --app sdlc-agents-web
+    flyctl secrets set NEXT_PUBLIC_GITHUB_CLIENT_SECRET="$NEXT_PUBLIC_GITHUB_CLIENT_SECRET" --app devorbit-ai-web
     print_status "Set NEXT_PUBLIC_GITHUB_CLIENT_SECRET"
 fi
 
 # Atlassian
 if [ -n "$NEXT_PUBLIC_ATLASSIAN_CLIENT_ID" ]; then
-    flyctl secrets set NEXT_PUBLIC_ATLASSIAN_CLIENT_ID="$NEXT_PUBLIC_ATLASSIAN_CLIENT_ID" --app sdlc-agents-web
+    flyctl secrets set NEXT_PUBLIC_ATLASSIAN_CLIENT_ID="$NEXT_PUBLIC_ATLASSIAN_CLIENT_ID" --app devorbit-ai-web
     print_status "Set NEXT_PUBLIC_ATLASSIAN_CLIENT_ID"
 fi
 
 if [ -n "$NEXT_PUBLIC_ATLASSIAN_CLIENT_SECRET" ]; then
-    flyctl secrets set NEXT_PUBLIC_ATLASSIAN_CLIENT_SECRET="$NEXT_PUBLIC_ATLASSIAN_CLIENT_SECRET" --app sdlc-agents-web
+    flyctl secrets set NEXT_PUBLIC_ATLASSIAN_CLIENT_SECRET="$NEXT_PUBLIC_ATLASSIAN_CLIENT_SECRET" --app devorbit-ai-web
     print_status "Set NEXT_PUBLIC_ATLASSIAN_CLIENT_SECRET"
 fi
 
@@ -145,17 +145,17 @@ echo ""
 print_warning "Manual configuration required:"
 echo ""
 echo "1. Set your Anthropic API key:"
-echo "   flyctl secrets set ANTHROPIC_API_KEY='your-anthropic-key' --app sdlc-agents-api"
+echo "   flyctl secrets set ANTHROPIC_API_KEY='your-anthropic-key' --app devorbit-ai-api"
 echo ""
 echo "2. Set OAuth credentials for integrations:"
-echo "   flyctl secrets set NEXT_PUBLIC_NOTION_CLIENT_ID='your-notion-client-id' --app sdlc-agents-web"
-echo "   flyctl secrets set NEXT_PUBLIC_GITHUB_CLIENT_ID='your-github-client-id' --app sdlc-agents-web"
-echo "   flyctl secrets set NEXT_PUBLIC_ATLASSIAN_CLIENT_ID='your-atlassian-client-id' --app sdlc-agents-web"
+echo "   flyctl secrets set NEXT_PUBLIC_NOTION_CLIENT_ID='your-notion-client-id' --app devorbit-ai-web"
+echo "   flyctl secrets set NEXT_PUBLIC_GITHUB_CLIENT_ID='your-github-client-id' --app devorbit-ai-web"
+echo "   flyctl secrets set NEXT_PUBLIC_ATLASSIAN_CLIENT_ID='your-atlassian-client-id' --app devorbit-ai-web"
 echo ""
 echo "3. Set corresponding client secrets:"
-echo "   flyctl secrets set NEXT_PUBLIC_NOTION_CLIENT_SECRET='your-notion-secret' --app sdlc-agents-web"
-echo "   flyctl secrets set NEXT_PUBLIC_GITHUB_CLIENT_SECRET='your-github-secret' --app sdlc-agents-web"
-echo "   flyctl secrets set NEXT_PUBLIC_ATLASSIAN_CLIENT_SECRET='your-atlassian-secret' --app sdlc-agents-web"
+echo "   flyctl secrets set NEXT_PUBLIC_NOTION_CLIENT_SECRET='your-notion-secret' --app devorbit-ai-web"
+echo "   flyctl secrets set NEXT_PUBLIC_GITHUB_CLIENT_SECRET='your-github-secret' --app devorbit-ai-web"
+echo "   flyctl secrets set NEXT_PUBLIC_ATLASSIAN_CLIENT_SECRET='your-atlassian-secret' --app devorbit-ai-web"
 echo ""
-print_status "Run 'flyctl secrets list --app sdlc-agents-api' to view API secrets"
-print_status "Run 'flyctl secrets list --app sdlc-agents-web' to view Web secrets"
+print_status "Run 'flyctl secrets list --app devorbit-ai-api' to view API secrets"
+print_status "Run 'flyctl secrets list --app devorbit-ai-web' to view Web secrets"

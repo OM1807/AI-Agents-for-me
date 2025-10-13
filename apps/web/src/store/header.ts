@@ -16,14 +16,14 @@ export const useHeaderStore = create<HeaderState>()(
   devtools(
     persist(
       set => ({
-        title: 'SDLC Agents',
+        title: 'DevOrbit AI',
         setTitle: (title: string) => set(() => ({ title })),
-        resetTitle: () => set(() => ({ title: 'SDLC Agents' })),
+        resetTitle: () => set(() => ({ title: 'DevOrbit AI' })),
         isCollapsed: false,
         setIsCollapsed: (isCollapsed: boolean) => set(() => ({ isCollapsed })),
         resetIsCollapsed: () => set(() => ({ isCollapsed: false })),
         resetAll: () =>
-          set(() => ({ title: 'SDLC Agents', isCollapsed: false })),
+          set(() => ({ title: 'DevOrbit AI', isCollapsed: false })),
       }),
       {
         name: 'header-store',

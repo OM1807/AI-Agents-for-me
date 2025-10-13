@@ -1,6 +1,6 @@
-# SDLC Agents - Fly.io Deployment Guide
+# DevOrbit AI - Fly.io Deployment Guide
 
-This guide provides step-by-step instructions for deploying the SDLC Agents platform to Fly.io.
+This guide provides step-by-step instructions for deploying the DevOrbit AI platform to Fly.io.
 
 ## Quick Start
 
@@ -46,8 +46,8 @@ After deployment, configure your secrets:
 ./fly-secrets.sh
 
 # Or set secrets manually
-flyctl secrets set ANTHROPIC_API_KEY='your-anthropic-key' --app sdlc-agents-api
-flyctl secrets set NEXT_PUBLIC_NOTION_CLIENT_ID='your-notion-client-id' --app sdlc-agents-web
+flyctl secrets set ANTHROPIC_API_KEY='your-anthropic-key' --app devorbit-ai-api
+flyctl secrets set NEXT_PUBLIC_NOTION_CLIENT_ID='your-notion-client-id' --app devorbit-ai-web
 # ... set other OAuth credentials
 ```
 
@@ -80,7 +80,7 @@ flyctl deploy --config fly.toml
 
 ## Environment Variables
 
-### API Secrets (sdlc-agents-api)
+### API Secrets (devorbit-ai-api)
 
 **Required:**
 - `SECRET_KEY` - Random secret key for JWT tokens
@@ -91,7 +91,7 @@ flyctl deploy --config fly.toml
 - `BACKEND_CORS_ORIGINS` - CORS allowed origins
 - `LOG_LEVEL` - Logging level (default: INFO)
 
-### Web Secrets (sdlc-agents-web)
+### Web Secrets (devorbit-ai-web)
 
 **Required:**
 - `NEXT_PUBLIC_API_URL` - API endpoint URL (set automatically)
@@ -110,26 +110,26 @@ flyctl deploy --config fly.toml
 
 ```bash
 # Check API status
-flyctl status --app sdlc-agents-api
+flyctl status --app devorbit-ai-api
 
 # Check Web status
-flyctl status --app sdlc-agents-web
+flyctl status --app devorbit-ai-web
 
 # Check Database status
-flyctl status --app sdlc-agents-db
+flyctl status --app devorbit-ai-db
 ```
 
 ### View Logs
 
 ```bash
 # API logs
-flyctl logs --app sdlc-agents-api
+flyctl logs --app devorbit-ai-api
 
 # Web logs
-flyctl logs --app sdlc-agents-web
+flyctl logs --app devorbit-ai-web
 
 # Database logs
-flyctl logs --app sdlc-agents-db
+flyctl logs --app devorbit-ai-db
 ```
 
 ### Health Checks
@@ -148,13 +148,13 @@ curl https://your-web.fly.dev/
 
 ```bash
 # Scale API to 2 instances
-flyctl scale count 2 --app sdlc-agents-api
+flyctl scale count 2 --app devorbit-ai-api
 
 # Scale Web to 2 instances
-flyctl scale count 2 --app sdlc-agents-web
+flyctl scale count 2 --app devorbit-ai-web
 
 # Upgrade machine size
-flyctl scale vm shared-cpu-2x --app sdlc-agents-api
+flyctl scale vm shared-cpu-2x --app devorbit-ai-api
 ```
 
 ## Custom Domains
@@ -163,10 +163,10 @@ flyctl scale vm shared-cpu-2x --app sdlc-agents-api
 
 ```bash
 # Add custom domain to API
-flyctl certs add api.yourdomain.com --app sdlc-agents-api
+flyctl certs add api.yourdomain.com --app devorbit-ai-api
 
 # Add custom domain to Web
-flyctl certs add app.yourdomain.com --app sdlc-agents-web
+flyctl certs add app.yourdomain.com --app devorbit-ai-web
 ```
 
 ## Backups
@@ -175,10 +175,10 @@ flyctl certs add app.yourdomain.com --app sdlc-agents-web
 
 ```bash
 # Create volume snapshot
-flyctl volumes snapshot create --app sdlc-agents-db
+flyctl volumes snapshot create --app devorbit-ai-db
 
 # List snapshots
-flyctl volumes snapshot list --app sdlc-agents-db
+flyctl volumes snapshot list --app devorbit-ai-db
 ```
 
 ## Troubleshooting
@@ -188,25 +188,25 @@ flyctl volumes snapshot list --app sdlc-agents-db
 1. **Database Connection Errors**:
    ```bash
    # Check database status
-   flyctl status --app sdlc-agents-db
+   flyctl status --app devorbit-ai-db
 
    # Check database logs
-   flyctl logs --app sdlc-agents-db
+   flyctl logs --app devorbit-ai-db
    ```
 
 2. **API Not Starting**:
    ```bash
    # Check API logs
-   flyctl logs --app sdlc-agents-api
+   flyctl logs --app devorbit-ai-api
 
    # Check secrets
-   flyctl secrets list --app sdlc-agents-api
+   flyctl secrets list --app devorbit-ai-api
    ```
 
 3. **Web Not Loading**:
    ```bash
    # Check Web logs
-   flyctl logs --app sdlc-agents-web
+   flyctl logs --app devorbit-ai-web
 
    # Check if API is accessible
    curl https://your-api.fly.dev/health
@@ -216,13 +216,13 @@ flyctl volumes snapshot list --app sdlc-agents-db
 
 ```bash
 # SSH into API machine
-flyctl ssh console --app sdlc-agents-api
+flyctl ssh console --app devorbit-ai-api
 
 # SSH into Web machine
-flyctl ssh console --app sdlc-agents-web
+flyctl ssh console --app devorbit-ai-web
 
 # Check machine metrics
-flyctl metrics --app sdlc-agents-api
+flyctl metrics --app devorbit-ai-api
 ```
 
 ## Security
@@ -254,10 +254,10 @@ Fly.io automatically scales down to 0 when not in use (with `auto_stop_machines 
 
 ```bash
 # Check current resource usage
-flyctl metrics --app sdlc-agents-api
+flyctl metrics --app devorbit-ai-api
 
 # Adjust machine size if needed
-flyctl scale vm shared-cpu-1x --app sdlc-agents-api
+flyctl scale vm shared-cpu-1x --app devorbit-ai-api
 ```
 
 ## Support

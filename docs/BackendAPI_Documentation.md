@@ -1,4 +1,4 @@
-# SDLC Agents Backend API - Complete Documentation
+# DevOrbit AI Backend API - Complete Documentation
 
 ## Table of Contents
 1. [API Overview](#api-overview)
@@ -1324,7 +1324,7 @@ data: [DONE]
 
 ### MCP (Model Context Protocol) Overview
 
-MCP provides a standardized way to integrate external tools and services with Claude Code SDK. The SDLC Agents platform generates MCP configurations dynamically based on user integrations.
+MCP provides a standardized way to integrate external tools and services with Claude Code SDK. The DevOrbit AI platform generates MCP configurations dynamically based on user integrations.
 
 ### Supported MCP Providers
 
@@ -1483,6 +1483,6 @@ poetry run pytest --cov=app --cov-report=term-missing
 
 ## Conclusion
 
-The SDLC Agents Backend API provides a comprehensive, type-safe interface for AI-powered SDLC automation. With support for multiple streaming protocols, extensive third-party integrations, and a flexible agent workflow system, it serves as a robust foundation for building intelligent development tools.
+The DevOrbit AI Backend API provides a comprehensive, type-safe interface for AI-powered SDLC automation. With support for multiple streaming protocols, extensive third-party integrations, and a flexible agent workflow system, it serves as a robust foundation for building intelligent development tools.
 
 For questions or support, consult the OpenAPI documentation at `/docs` or `/redoc`.
