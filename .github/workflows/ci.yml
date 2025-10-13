@@ -151,7 +151,12 @@ jobs:
           DATABASE_URL: "sqlite+aiosqlite:///:memory:"
           ANTHROPIC_API_KEY: "test-api-key"
           ENVIRONMENT: "test"
-          DEBUG: "false"
+          DEBUG: "true"
+          VERSION: "1.0.0"
+          API_V1_STR: "/api/v1"
+          BACKEND_CORS_ORIGINS: "*"
+          PROJECT_NAME: "DevOrbit AI API"
+
         run: |
           echo "🧪 Running tests with coverage..."
           poetry run pytest --cov=app --cov-report=xml --cov-report=term-missing --cov-fail-under=85
