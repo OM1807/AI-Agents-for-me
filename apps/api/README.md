@@ -102,7 +102,7 @@ Create a `.env` file in the `apps/api` directory:
 
 ```env
 # Database Configuration
-DATABASE_URL=postgresql+asyncpg://postgres:password@localhost:5432/sdlc_agents
+DATABASE_URL=postgresql+asyncpg://postgres:password@localhost:5432/devorbit_ai
 DATABASE_ECHO=false
 
 # JWT Configuration
@@ -332,7 +332,7 @@ docker build -t sdlc-agents-api .
 
 # Run the container
 docker run -p 8000:8000 \
-  -e DATABASE_URL=postgresql+asyncpg://postgres:password@host.docker.internal:5432/sdlc_agents \
+  -e DATABASE_URL=postgresql+asyncpg://postgres:password@host.docker.internal:5432/devorbit_ai \
   -e SECRET_KEY=your-secret-key \
   sdlc-agents-api
 ```

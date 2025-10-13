@@ -204,10 +204,10 @@ Use the provided deployment script for easy setup:
 
 ```bash
 # Make the script executable
-chmod +x deploy.sh
+chmod +x deployment/deploy.sh
 
 # Run the deployment script
-./deploy.sh
+./deployment/deploy.sh
 ```
 
 The script will:
@@ -226,19 +226,23 @@ If you prefer manual deployment:
 cd apps/api
 flyctl launch --config fly.postgres.toml
 flyctl deploy --config fly.postgres.toml
+cd ../..
 ```
 
 **Deploy API:**
 ```bash
-flyctl launch --config fly.toml
-flyctl deploy --config fly.toml
+cd apps/api
+flyctl launch --config fly-api.toml
+flyctl deploy --config fly-api.toml
+cd ../..
 ```
 
 **Deploy Web:**
 ```bash
-cd ../web
-flyctl launch --config fly.toml
-flyctl deploy --config fly.toml
+cd apps/web
+flyctl launch --config fly-web.toml
+flyctl deploy --config fly-web.toml
+cd ../..
 ```
 
 #### Step 4: Set Environment Variables
@@ -363,11 +367,11 @@ The frontend is automatically deployed as part of the Fly.io setup using the dep
 If you need to deploy the frontend separately:
 
 ```bash
-cd apps/web
-
 # Deploy to Fly.io
-flyctl launch --config fly.toml
-flyctl deploy --config fly.toml
+cd apps/web
+flyctl launch --config fly-web.toml
+flyctl deploy --config fly-web.toml
+cd ../..
 
 # Set environment variables
 flyctl secrets set NEXT_PUBLIC_API_URL=https://your-api.fly.dev/api/v1 --app sdlc-agents-web
@@ -528,17 +532,17 @@ The database is automatically configured when you run the deployment script:
 
 ```bash
 # Database is deployed automatically with the script
-./deploy.sh
+./deployment/deploy.sh
 ```
 
 **Manual Database Setup**:
 
 ```bash
-cd apps/api
-
 # Deploy PostgreSQL
+cd apps/api
 flyctl launch --config fly.postgres.toml
 flyctl deploy --config fly.postgres.toml
+cd ../..
 
 # Get connection details
 flyctl status --app sdlc-agents-db
@@ -573,9 +577,9 @@ brew install postgresql@15
 sudo -u postgres psql
 
 # Create database and user
-CREATE DATABASE sdlc_agents;
+CREATE DATABASE devorbit_ai;
 CREATE USER sdlc_user WITH ENCRYPTED PASSWORD 'secure_password';
-GRANT ALL PRIVILEGES ON DATABASE sdlc_agents TO sdlc_user;
+GRANT ALL PRIVILEGES ON DATABASE devorbit_ai TO sdlc_user;
 \q
 ```
 

@@ -3,7 +3,7 @@
 # See https://fly.io/docs/reference/configuration/ for information about how to use this file.
 #
 
-app = 'sdlc-pg-15'
+app = 'devorbit-ai-db-15'
 primary_region = 'bom'
 
 [build]
@@ -12,14 +12,14 @@ primary_region = 'bom'
 [env]
   LANG = 'C.UTF-8'
   LC_ALL = 'C.UTF-8'
-  POSTGRES_DB = 'sdlc_agents'
+  POSTGRES_DB = 'devorbit_ai'
   POSTGRES_INITDB_ARGS = '--locale=C.UTF-8'
   POSTGRES_PASSWORD = 'postgres'
   POSTGRES_USER = 'postgres'
   PGDATA = '/var/lib/postgresql/data/pgdata'
 
 [[mounts]]
-  source = 'sdlc_agents_postgres_data'
+  source = 'devorbit_ai_postgres_data'
   destination = '/var/lib/postgresql/data'
 
 [[services]]
