@@ -75,53 +75,47 @@ class RequirementsToCodeWorkflow(AgentWorkflow):
     # --- START OF JIRA-ONLY UPDATE ---
     # Replace the existing _get_jira_credentials function.
 
-    async def _get_jira_credentials(self, *, session: UserAgentSession) -> dict[str, Any] | None:
-        """
-        Safely get Jira credentials directly from the integration record,
-        bypassing any potentially buggy refresh logic in the service layer.
-        Uses the correct 'created_by' field for filtering.
-        """
-        integration = None  # Initialize to None
-        try:
-            # Get the user ID from the session object.
-            user_identifier = session.created_by
-            logger.info(f"Attempting to find Jira/Atlassian integration directly for user {user_identifier} using CRUD...")
+async def _get_jira_credentials(self, *, session: UserAgentSession) -> dict[str, Any] | None:
+    """
+    Safely get Jira credentials directly from the integration record.
+    Uses the correct method signature without the invalid 'created_by' parameter.
+    """
+    integration = None
+    try:
+        user_identifier = session.created_by
+        logger.info(f"Attempting to find Jira/Atlassian integration for user {user_identifier}...")
 
-            # --- Core Workaround: Direct Database Read ---
-            # Use the correct 'created_by' field matching your database schema.
+        # Try finding 'JIRA' provider first
+        # Note: get_by_provider already filters by user via get_query()
+        integration = await self.integration_service.crud.get_by_provider(
+            provider=IntegrationProvider.JIRA
+        )
 
-            # Try finding 'JIRA' provider first
+        # If not found, try 'ATLASSIAN' provider
+        if not integration:
+            logger.info("No 'JIRA' integration found, trying 'ATLASSIAN' provider name.")
             integration = await self.integration_service.crud.get_by_provider(
-                provider=IntegrationProvider.JIRA, created_by=user_identifier
+                provider=IntegrationProvider.ATLASSIAN
             )
 
-            # If not found, try 'ATLASSIAN' provider
-            if not integration:
-                logger.info("No 'JIRA' integration found, trying 'ATLASSIAN' provider name.")
-                integration = await self.integration_service.crud.get_by_provider(
-                    provider=IntegrationProvider.ATLASSIAN, created_by=user_identifier
-                )
-
-            # Check if we found an integration and if it has valid credentials stored
-            if integration and integration.credentials and isinstance(integration.credentials, dict):
-                # Check for essential OAuth keys needed by _fetch_jira_ticket
-                if "access_token" in integration.credentials and "cloud_id" in integration.credentials:
-                    logger.info(f"✅ Directly retrieved valid credentials for integration ID: {integration.id}")
-                    # Return a copy to prevent accidental modification elsewhere
-                    return integration.credentials.copy()
-                else:
-                    logger.error(f"Integration {integration.id} found, but credentials dictionary is missing required OAuth keys (access_token, cloud_id).")
-                    return None
+        # Check if we found an integration and if it has valid credentials stored
+        if integration and integration.credentials and isinstance(integration.credentials, dict):
+            # Check for essential OAuth keys needed by _fetch_jira_ticket
+            if "access_token" in integration.credentials and "cloud_id" in integration.credentials:
+                logger.info(f"✅ Successfully retrieved valid credentials for integration ID: {integration.id}")
+                return integration.credentials.copy()
             else:
-                 # Log if no integration was found for the user or if credentials are empty/invalid
-                 logger.error(f"No valid Jira or Atlassian integration with stored credentials found for user {user_identifier}.")
-                 return None
-
-        except Exception as e:
-            # Catch any unexpected error during the direct fetch.
-            integration_id_info = f"(Integration ID: {integration.id})" if integration else ""
-            logger.error(f"Critical error fetching credentials directly {integration_id_info}: {e}", exc_info=True)
+                logger.error(f"Integration {integration.id} found, but credentials missing OAuth keys (access_token, cloud_id).")
+                return None
+        else:
+            logger.error(f"No valid Jira or Atlassian integration with stored credentials found for user {user_identifier}.")
             return None
+
+    except Exception as e:
+        integration_id_info = f"(Integration ID: {integration.id})" if integration else ""
+        logger.error(f"Critical error fetching credentials {integration_id_info}: {e}", exc_info=True)
+        return None
+
 
     async def _fetch_jira_ticket(self, *, ticket_key: str, session: UserAgentSession) -> dict[str, Any]:
         """Fetch and parse Jira ticket details using the REST API with OAuth 2.0."""
