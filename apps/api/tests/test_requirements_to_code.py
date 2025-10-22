@@ -76,7 +76,7 @@ async def test_prepare_creates_directories(workflow, sample_session):
 @pytest.mark.asyncio
 async def test_fetch_jira_ticket(workflow):
     """Test the placeholder for Jira ticket fetching."""
-    ticket = await workflow._fetch_jira_ticket("PROJ-123")
+    ticket = await workflow._fetch_jira_ticket(ticket_key="PROJ-123", session=sample_session)
     assert "key" in ticket
     assert ticket["key"] == "PROJ-123"
 
