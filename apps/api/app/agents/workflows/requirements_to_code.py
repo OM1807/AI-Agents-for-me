@@ -85,18 +85,10 @@ class RequirementsToCodeWorkflow(AgentWorkflow):
             user_identifier = session.created_by
             logger.info(f"Attempting to find Jira/Atlassian integration for user {user_identifier}...")
 
-            # Try finding 'JIRA' provider first
-            # Note: get_by_provider already filters by user via get_query()
+            # Only use ATLASSIAN provider (JIRA doesn't exist in enum)
             integration = await self.integration_service.crud.get_by_provider(
-                provider=IntegrationProvider.JIRA
+                provider=IntegrationProvider.ATLASSIAN
             )
-
-            # If not found, try 'ATLASSIAN' provider
-            if not integration:
-                logger.info("No 'JIRA' integration found, trying 'ATLASSIAN' provider name.")
-                integration = await self.integration_service.crud.get_by_provider(
-                    provider=IntegrationProvider.ATLASSIAN
-                )
 
             # Check if we found an integration and if it has valid credentials stored
             if integration and integration.credentials and isinstance(integration.credentials, dict):
@@ -108,13 +100,14 @@ class RequirementsToCodeWorkflow(AgentWorkflow):
                     logger.error(f"Integration {integration.id} found, but credentials missing OAuth keys (access_token, cloud_id).")
                     return None
             else:
-                logger.error(f"No valid Jira or Atlassian integration with stored credentials found for user {user_identifier}.")
+                logger.error(f"No valid Atlassian integration with stored credentials found for user {user_identifier}.")
                 return None
 
         except Exception as e:
             integration_id_info = f"(Integration ID: {integration.id})" if integration else ""
             logger.error(f"Critical error fetching credentials {integration_id_info}: {e}", exc_info=True)
             return None
+
 
 
     async def _fetch_jira_ticket(self, *, ticket_key: str, session: UserAgentSession) -> dict[str, Any]:
