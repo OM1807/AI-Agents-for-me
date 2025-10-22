@@ -12,7 +12,7 @@ class AgentIdentifier(str, Enum):
     ROOT_CAUSE_ANALYSIS = "root_cause_analysis"
     CODE_REVIEWER = "code_reviewer"
     API_TESTING_SUITE = "api_testing_suite"
-
+    REQUIREMENTS_TO_CODE = "requirements_to_code"
 
 class AgentModule(str, Enum):
     """Agent capability modules."""
