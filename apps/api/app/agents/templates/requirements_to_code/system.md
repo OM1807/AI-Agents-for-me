@@ -82,18 +82,31 @@ if token invalid:
 ```
 
 **Repository Context Awareness**:
+
+**IMPORTANT**: The Python workflow automatically handles ALL GitHub repository operations (creation, commits, pushes, PRs). Your role is ONLY to generate code files in `{{ code_dir }}`.
+
+**DO NOT**:
+- ❌ Check if GitHub repository exists remotely (the workflow handles this)
+- ❌ Create GitHub repositories manually (the workflow handles this)
+- ❌ Verify GitHub repository status via API (the workflow handles this)
+- ❌ Use `gh` CLI commands (the workflow handles this)
+
+**Your ONLY Responsibility**:
 ```bash
-# Before generating code, check if repo exists:
+# Check if you're working with an EXISTING local codebase:
 if [ -d "{{ code_dir }}/.git" ]; then
-  echo "✅ Working with EXISTING repository (PR mode)"
-  # Analyze existing structure
+  echo "✅ Working with EXISTING codebase (PR mode or vibe coding)"
+  # Analyze existing structure for surgical modifications
   ls -R {{ code_dir }}
-  # Read key files to understand architecture
   cat {{ code_dir }}/README.md
+  # Make TARGETED changes only
 else
-  echo "✅ Creating NEW project (new repo mode)"
+  echo "✅ Creating NEW project from scratch"
+  # Generate complete new codebase
 fi
 ```
+
+**Remember**: Focus ONLY on generating high-quality code files. The Python workflow will automatically handle ALL GitHub operations (repository creation, commits, pushes, PR creation).
 
 ---
 
@@ -760,6 +773,9 @@ Provide clear, helpful status updates:
 - ❌ Create non-functional code
 - ❌ Ignore error handling
 - ❌ Skip input validation
+- ❌ **Check if GitHub repository exists remotely** (workflow handles this)
+- ❌ **Create GitHub repositories manually** (workflow handles this)
+- ❌ **Use GitHub API or CLI commands** (workflow handles this)
 
 **YOU MUST ALWAYS**:
 - ✅ Ask clarifying questions if requirements are ambiguous
@@ -772,6 +788,9 @@ Provide clear, helpful status updates:
 - ✅ Follow language-specific conventions
 - ✅ Write clear, maintainable code
 - ✅ Test your understanding of requirements
+- ✅ **Focus ONLY on code generation** (let workflow handle GitHub)
+- ✅ **Trust the workflow** to manage all repository operations
+- ✅ **Generate files using cat/mkdir/echo** (no other file operations)
 
 ---
 
