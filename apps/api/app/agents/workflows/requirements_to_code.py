@@ -861,14 +861,16 @@ Acceptance Criteria:
 
         # FIX #5: Yield status instead of returning
         if session.llm_session_id:
-            logger.info("Session already initialized, skipping prepare step")
+            logger.info("Session already initialized, skipping prepare step for vibe coding")
             await self._scan_workspace_files()
 
+            # For vibe coding, requirements cache being empty is OK
+            # User is just iterating on existing code, not generating from requirements
             if not self.requirements_cache:
-                logger.warning("Requirements cache empty on re-run")
+                logger.info("Requirements cache empty on vibe coding session - this is normal")
                 yield {
                     "type": "text",
-                    "data": {"text": "⚠️ Session resumed but requirements cache is empty"}
+                    "data": {"text": "💡 Vibe coding session: Making changes to existing codebase"}
                 }
             return
 
@@ -1170,13 +1172,16 @@ Acceptance Criteria:
                 yield event
             yield {"type": "text", "data": {"text": "✅ Preparation complete"}}
 
-            # ✅ CRITICAL: Check if requirements were fetched
-            if not self.requirements_cache:
+            # ✅ CRITICAL: Check if requirements were fetched (only for initial generation)
+            # For vibe coding (session with llm_session_id), requirements cache can be empty
+            if not self.requirements_cache and not session.llm_session_id:
                 error_msg = "No requirements found after preparation. Cannot proceed with code generation."
                 logger.error(error_msg)
                 yield {"type": "text", "data": {"text": f"❌ {error_msg}"}}
                 yield {"type": "finish", "data": {"finishReason": "error", "error": error_msg}}
                 return
+            elif not self.requirements_cache and session.llm_session_id:
+                logger.info("Vibe coding session: Proceeding without requirements cache")
 
             # Phase 2: Code Generation
             system_prompt = await self._prepare_system_prompt(session=session)
