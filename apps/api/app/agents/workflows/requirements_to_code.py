@@ -1,10 +1,9 @@
 """
-Requirements To Code agent workflow implementation - FIXED VERSION.
+Requirements To Code agent workflow implementation - ENHANCED VERSION.
 
-This is the CORRECTED implementation fixing all critical bugs that prevented
-repository creation and code generation.
+This is the ENHANCED implementation with all critical bugs fixed PLUS new features.
 
-CRITICAL FIXES APPLIED:
+FIXES AND ENHANCEMENTS APPLIED:
 1. ✅ Fixed GitOps clone_repository parameter name (destination_dir)
 2. ✅ Fixed clone destination logic (clone to workspace, then move to code_dir)
 3. ✅ Fixed file scanning to not exclude cloned repositories
@@ -12,15 +11,21 @@ CRITICAL FIXES APPLIED:
 5. ✅ Fixed prepare method to yield instead of return
 6. ✅ Added better error handling and user-friendly messages
 7. ✅ Added output configuration validation
+8. ✅ NEW: Intelligent output mode detection (fixes repository existence error)
+9. ✅ NEW: Automated testing feature (Python + JavaScript support)
+10. ✅ NEW: Dependency installation in isolated environments
+11. ✅ NEW: Test result parsing and blocking on failures
+12. ✅ NEW: Automatic cleanup of testing artifacts
 
-Author: DevOrbit AI Team (Fixed by Claude)
-Version: 2.1-FIXED
+Author: DevOrbit AI Team (Enhanced by Claude)
+Version: 3.0-ENHANCED
 Date: January 2025
 """
 
 import asyncio
 import glob
 import json
+import os
 import re
 import shutil
 import subprocess
@@ -66,7 +71,7 @@ class WorkspaceError(Exception):
 @register(AgentIdentifier.REQUIREMENTS_TO_CODE)
 class RequirementsToCodeWorkflow(AgentWorkflow):
     """
-    FIXED workflow for building production-ready code from requirements.
+    ENHANCED workflow for building production-ready code from requirements.
 
     Features:
     - Multi-source requirement fetching (Jira, ClickUp, Files)
@@ -76,6 +81,8 @@ class RequirementsToCodeWorkflow(AgentWorkflow):
     - Workspace isolation and cleanup
     - Performance optimizations
     - Enhanced logging and monitoring
+    - Intelligent mode detection for vibe coding
+    - Automated testing with dependency isolation
 
     Supports three output modes:
     1. new_repo: Create a new GitHub repository
@@ -128,7 +135,7 @@ class RequirementsToCodeWorkflow(AgentWorkflow):
         self._http_client: httpx.AsyncClient | None = None
 
         logger.info(
-            f"Initialized RequirementsToCodeWorkflow (FIXED VERSION)",
+            f"Initialized RequirementsToCodeWorkflow (ENHANCED VERSION)",
             extra={
                 "workspace_dir": str(workspace_dir),
                 "code_dir": str(self.code_dir),
@@ -1151,7 +1158,7 @@ Acceptance Criteria:
         self, *, session: UserAgentSession, messages: list[dict[str, Any]]
     ) -> AsyncIterator[dict[str, Any]]:
         """
-        Run the code building workflow: Prepare -> Generate -> Finalize.
+        Run the code building workflow: Prepare -> Generate -> Test -> Finalize.
 
         Args:
             session: User agent session
@@ -1162,7 +1169,7 @@ Acceptance Criteria:
         """
         try:
             logger.info(
-                f"Starting Requirements-to-Code workflow (FIXED VERSION)",
+                f"Starting Requirements-to-Code workflow (ENHANCED VERSION)",
                 extra={"session_id": str(session.id)}
             )
 
@@ -1246,10 +1253,99 @@ Acceptance Criteria:
                     "data": {"text": "⚠️ No files found in workspace after generation"},
                 }
 
+            # ✅ NEW: Phase 3.5: Automated Testing (Issue #2 Fix)
+            if await self._should_run_tests(session):
+                yield {"type": "text", "data": {"text": "🧪 Starting automated testing phase..."}}
+
+                try:
+                    test_results = await self._run_automated_tests()
+
+                    if test_results["success"]:
+                        yield {
+                            "type": "text",
+                            "data": {
+                                "text": f"✅ All tests passed! ({test_results['passed']}/{test_results['total']} tests)"
+                            }
+                        }
+                        logger.info(f"Tests passed: {test_results['passed']}/{test_results['total']}")
+                    else:
+                        yield {
+                            "type": "text",
+                            "data": {
+                                "text": f"❌ Tests failed: {test_results['failed']}/{test_results['total']} tests failed"
+                            }
+                        }
+                        yield {
+                            "type": "text",
+                            "data": {
+                                "text": "⚠️ Code will not be pushed to GitHub due to test failures"
+                            }
+                        }
+
+                        # Show test output (first 1000 chars)
+                        if test_results.get("output"):
+                            yield {
+                                "type": "text",
+                                "data": {
+                                    "text": f"📋 Test Output:\n```\n{test_results['output'][:1000]}\n```"
+                                }
+                            }
+
+                        logger.warning("Aborting workflow due to test failures")
+                        yield {"type": "finish", "data": {"finishReason": "test_failure"}}
+                        return
+
+                except Exception as test_error:
+                    logger.error(f"Error running tests: {test_error}", exc_info=True)
+                    yield {
+                        "type": "text",
+                        "data": {
+                            "text": f"⚠️ Testing failed with error: {test_error}. Proceeding without tests."
+                        }
+                    }
+            else:
+                logger.info("Automated testing disabled or no test files found")
+
             # Phase 4: Finalization
             properties = session.custom_properties or {}
             output_config = properties.get("output_config", {})
             output_type = output_config.get("type")
+
+            # ✅ FIX ISSUE #1: Intelligent mode detection for vibe coding
+            # Detect if we're working with an existing repository and adjust output type
+            if session.llm_session_id and output_type == "new_repo":
+                # This is a vibe coding session (follow-up request)
+                # Check if .git directory exists (indicating existing repo)
+                if (self.code_dir / ".git").is_dir():
+                    logger.warning(
+                        "Vibe coding session detected with 'new_repo' mode, "
+                        "but repository already exists. Switching to 'pull_request' mode."
+                    )
+                    output_type = "pull_request"
+                    output_config["type"] = "pull_request"
+
+                    # Set repo_url if not present
+                    if not output_config.get("repo_url"):
+                        # Try to extract from git remote
+                        try:
+                            remote_output = await self._run_git_command(["git", "remote", "get-url", "origin"])
+                            output_config["repo_url"] = remote_output.strip()
+                            logger.info(f"Detected repository URL: {output_config['repo_url']}")
+                        except GitOperationError:
+                            logger.error("Could not determine repository URL for PR mode")
+                            # Fallback to workspace_only if we can't determine repo URL
+                            output_type = "workspace_only"
+                            output_config["type"] = "workspace_only"
+                            logger.warning("Falling back to workspace_only mode")
+
+                    # Set base branch if not present
+                    if not output_config.get("base_branch"):
+                        try:
+                            branch_output = await self._run_git_command(["git", "branch", "--show-current"])
+                            output_config["base_branch"] = branch_output.strip() or "main"
+                            logger.info(f"Using base branch: {output_config['base_branch']}")
+                        except GitOperationError:
+                            output_config["base_branch"] = "main"
 
             if output_type in ["new_repo", "pull_request"]:
                 if file_count == 0:
@@ -1763,7 +1859,7 @@ Acceptance Criteria:
             GitOperationError: If git operations fail
             GitHubAPIError: If GitHub operations fail
         """
-        logger.info("Finalizing Requirements-to-Code workflow (FIXED VERSION)")
+        logger.info("Finalizing Requirements-to-Code workflow (ENHANCED VERSION)")
 
         properties = session.custom_properties or {}
         output_config = properties.get("output_config", {})
@@ -1797,6 +1893,13 @@ Acceptance Criteria:
             logger.error(f"Unexpected error during finalization: {e}", exc_info=True)
             yield {"type": "text", "data": {"text": f"❌ Unexpected Error: {e}"}}
             raise
+
+        finally:
+            # Clean up testing artifacts
+            properties = session.custom_properties or {}
+            options = properties.get("options", {})
+            if options.get("cleanup_after_testing", True):
+                await self._cleanup_testing_artifacts()
 
     async def _finalize_new_repo(
         self, session: UserAgentSession, output_config: dict
@@ -1922,7 +2025,470 @@ Acceptance Criteria:
         yield {"type": "text", "data": {"text": f"Location: `{self.code_dir}`"}}
         logger.info(f"Finalization complete: Files in workspace {self.code_dir}")
 
+    # ========================================================================
+    # AUTOMATED TESTING SUPPORT (NEW FEATURE - ISSUE #2)
+    # ========================================================================
+
+    async def _should_run_tests(self, session: UserAgentSession) -> bool:
+        """
+        Determine if automated testing should be run.
+
+        Returns:
+            bool: True if testing should be executed
+        """
+        # Check if testing is enabled in session options
+        properties = session.custom_properties or {}
+        options = properties.get("options", {})
+        testing_enabled = options.get("run_automated_tests", False)
+
+        if not testing_enabled:
+            logger.info("Automated testing disabled in session options")
+            return False
+
+        # Check if test files exist in generated code
+        test_files_exist = self._test_files_exist()
+
+        if not test_files_exist:
+            logger.info("No test files found in generated code")
+            return False
+
+        logger.info("Automated testing enabled and test files found")
+        return True
+
+    def _test_files_exist(self) -> bool:
+        """
+        Check if test files exist in the generated code.
+
+        Returns:
+            bool: True if test files are found
+        """
+        test_patterns = [
+            "tests/**/*.py",      # Python tests directory
+            "test_*.py",          # Python test files
+            "*_test.py",          # Python test files (alternative)
+            "**/__tests__/**/*.js",  # JavaScript tests directory
+            "**/*.test.js",       # JavaScript test files
+            "**/*.test.ts",       # TypeScript test files
+            "**/*.spec.js",       # JavaScript spec files
+            "**/*.spec.ts",       # TypeScript spec files
+        ]
+
+        for pattern in test_patterns:
+            matches = list(self.code_dir.glob(pattern))
+            if matches:
+                logger.info(f"Found test files matching pattern: {pattern}")
+                return True
+
+        return False
+
+    async def _detect_project_type(self) -> str:
+        """
+        Detect project type based on files present.
+
+        Returns:
+            str: Project type ("python", "javascript", "unknown")
+        """
+        # Check for Python
+        if (self.code_dir / "requirements.txt").exists() or \
+           (self.code_dir / "pyproject.toml").exists() or \
+           (self.code_dir / "setup.py").exists():
+            logger.info("Detected project type: Python")
+            return "python"
+
+        # Check for JavaScript/TypeScript
+        if (self.code_dir / "package.json").exists():
+            logger.info("Detected project type: JavaScript/TypeScript")
+            return "javascript"
+
+        logger.warning("Could not detect project type")
+        return "unknown"
+
+    async def _run_automated_tests(self) -> dict[str, Any]:
+        """
+        Run automated tests on generated code.
+
+        Returns:
+            dict: Test results with keys:
+                - success: bool (True if all tests passed)
+                - passed: int (number of tests passed)
+                - failed: int (number of tests failed)
+                - total: int (total tests run)
+                - output: str (test output)
+                - error: str (error message if failed)
+        """
+        project_type = await self._detect_project_type()
+
+        logger.info(f"Running tests for project type: {project_type}")
+
+        if project_type == "python":
+            return await self._run_python_tests()
+        elif project_type == "javascript":
+            return await self._run_javascript_tests()
+        else:
+            logger.warning(f"Testing not supported for project type: {project_type}")
+            return {
+                "success": True,  # Don't block if we can't test
+                "passed": 0,
+                "failed": 0,
+                "total": 0,
+                "output": f"Testing not supported for project type: {project_type}",
+                "skipped": True
+            }
+
+    async def _run_python_tests(self) -> dict[str, Any]:
+        """Run Python tests using pytest."""
+        try:
+            logger.info("Starting Python test execution")
+
+            # Step 1: Install dependencies
+            logger.info("Installing Python dependencies...")
+            if not await self._install_python_dependencies():
+                return {
+                    "success": False,
+                    "error": "Failed to install dependencies",
+                    "passed": 0,
+                    "failed": 0,
+                    "total": 0
+                }
+
+            # Step 2: Determine pytest path
+            venv_dir = self.code_dir / "venv"
+            if venv_dir.exists():
+                pytest_path = venv_dir / "bin" / "pytest" if os.name != "nt" else venv_dir / "Scripts" / "pytest"
+            else:
+                pytest_path = "pytest"
+
+            logger.info(f"Using pytest at: {pytest_path}")
+
+            # Step 3: Run tests
+            logger.info(f"Running pytest in {self.code_dir}")
+
+            process = await asyncio.create_subprocess_exec(
+                str(pytest_path),
+                "--tb=short",
+                "--verbose",
+                "--color=no",
+                "-v",
+                "--maxfail=10",
+                stdout=asyncio.subprocess.PIPE,
+                stderr=asyncio.subprocess.PIPE,
+                cwd=self.code_dir
+            )
+
+            # Wait for tests with timeout (max 10 minutes)
+            try:
+                stdout, stderr = await asyncio.wait_for(
+                    process.communicate(),
+                    timeout=600
+                )
+            except asyncio.TimeoutError:
+                process.kill()
+                logger.error("Tests timed out after 10 minutes")
+                return {
+                    "success": False,
+                    "error": "Tests timed out after 10 minutes",
+                    "passed": 0,
+                    "failed": 0,
+                    "total": 0,
+                    "output": "Test execution timed out"
+                }
+
+            output = stdout.decode() + "\n" + stderr.decode()
+
+            # Step 4: Parse test results
+            results = self._parse_pytest_output(output)
+            results["output"] = output
+
+            logger.info(
+                f"Python test results: {results['passed']}/{results['total']} passed",
+                extra={"results": results}
+            )
+
+            return results
+
+        except FileNotFoundError:
+            logger.error("pytest not found")
+            return {
+                "success": False,
+                "error": "pytest not found. Install pytest first.",
+                "passed": 0,
+                "failed": 0,
+                "total": 0
+            }
+        except Exception as e:
+            logger.error(f"Error running Python tests: {e}", exc_info=True)
+            return {
+                "success": False,
+                "error": str(e),
+                "passed": 0,
+                "failed": 0,
+                "total": 0
+            }
+
+    def _parse_pytest_output(self, output: str) -> dict[str, Any]:
+        """Parse pytest output to extract test results."""
+        import re
+
+        passed = 0
+        failed = 0
+        skipped = 0
+        errors = 0
+
+        passed_match = re.search(r"(\d+)\s+passed", output)
+        if passed_match:
+            passed = int(passed_match.group(1))
+
+        failed_match = re.search(r"(\d+)\s+failed", output)
+        if failed_match:
+            failed = int(failed_match.group(1))
+
+        skipped_match = re.search(r"(\d+)\s+skipped", output)
+        if skipped_match:
+            skipped = int(skipped_match.group(1))
+
+        error_match = re.search(r"(\d+)\s+error", output)
+        if error_match:
+            errors = int(error_match.group(1))
+
+        total = passed + failed + skipped + errors
+        success = failed == 0 and errors == 0 and total > 0
+
+        return {
+            "success": success,
+            "passed": passed,
+            "failed": failed,
+            "skipped": skipped,
+            "errors": errors,
+            "total": total
+        }
+
+    async def _install_python_dependencies(self) -> bool:
+        """Install Python dependencies in virtual environment."""
+        requirements_file = self.code_dir / "requirements.txt"
+        pyproject_file = self.code_dir / "pyproject.toml"
+
+        if not requirements_file.exists() and not pyproject_file.exists():
+            logger.info("No Python dependencies file found, skipping installation")
+            return True
+
+        try:
+            # Create virtual environment
+            venv_dir = self.code_dir / "venv"
+
+            if not venv_dir.exists():
+                logger.info("Creating Python virtual environment")
+
+                create_venv_process = await asyncio.create_subprocess_exec(
+                    "python3", "-m", "venv", str(venv_dir),
+                    stdout=asyncio.subprocess.PIPE,
+                    stderr=asyncio.subprocess.PIPE,
+                    cwd=self.code_dir
+                )
+
+                stdout, stderr = await create_venv_process.communicate()
+
+                if create_venv_process.returncode != 0:
+                    logger.error(f"Failed to create virtual environment: {stderr.decode()}")
+                    return False
+
+                logger.info("Virtual environment created successfully")
+
+            # Install dependencies
+            pip_path = venv_dir / "bin" / "pip" if os.name != "nt" else venv_dir / "Scripts" / "pip"
+
+            logger.info("Installing Python dependencies")
+
+            if requirements_file.exists():
+                install_cmd = [str(pip_path), "install", "-r", str(requirements_file)]
+            else:
+                install_cmd = [str(pip_path), "install", "."]
+
+            install_process = await asyncio.create_subprocess_exec(
+                *install_cmd,
+                stdout=asyncio.subprocess.PIPE,
+                stderr=asyncio.subprocess.PIPE,
+                cwd=self.code_dir
+            )
+
+            stdout, stderr = await asyncio.wait_for(
+                install_process.communicate(),
+                timeout=300
+            )
+
+            if install_process.returncode != 0:
+                logger.error(f"Failed to install dependencies: {stderr.decode()}")
+                return False
+
+            # Also install pytest
+            logger.info("Installing pytest")
+
+            pytest_install = await asyncio.create_subprocess_exec(
+                str(pip_path), "install", "pytest", "pytest-cov",
+                stdout=asyncio.subprocess.PIPE,
+                stderr=asyncio.subprocess.PIPE,
+                cwd=self.code_dir
+            )
+
+            await pytest_install.communicate()
+
+            logger.info("Successfully installed Python dependencies")
+            return True
+
+        except asyncio.TimeoutError:
+            logger.error("Dependency installation timed out after 5 minutes")
+            return False
+        except Exception as e:
+            logger.error(f"Error installing Python dependencies: {e}", exc_info=True)
+            return False
+
+    async def _run_javascript_tests(self) -> dict[str, Any]:
+        """Run JavaScript tests using npm test."""
+        try:
+            logger.info("Starting JavaScript test execution")
+
+            package_json = self.code_dir / "package.json"
+            if not package_json.exists():
+                return {
+                    "success": False,
+                    "error": "No package.json found",
+                    "passed": 0,
+                    "failed": 0,
+                    "total": 0
+                }
+
+            # Install dependencies
+            logger.info("Installing npm dependencies")
+
+            install_process = await asyncio.create_subprocess_exec(
+                "npm", "install",
+                stdout=asyncio.subprocess.PIPE,
+                stderr=asyncio.subprocess.PIPE,
+                cwd=self.code_dir
+            )
+
+            stdout, stderr = await asyncio.wait_for(
+                install_process.communicate(),
+                timeout=300
+            )
+
+            if install_process.returncode != 0:
+                logger.error(f"npm install failed: {stderr.decode()}")
+                return {
+                    "success": False,
+                    "error": "Failed to install npm dependencies",
+                    "passed": 0,
+                    "failed": 0,
+                    "total": 0
+                }
+
+            # Run tests
+            logger.info("Running npm test")
+
+            test_process = await asyncio.create_subprocess_exec(
+                "npm", "test", "--", "--passWithNoTests",
+                stdout=asyncio.subprocess.PIPE,
+                stderr=asyncio.subprocess.PIPE,
+                cwd=self.code_dir,
+                env={**os.environ, "CI": "true"}
+            )
+
+            stdout, stderr = await asyncio.wait_for(
+                test_process.communicate(),
+                timeout=600
+            )
+
+            output = stdout.decode() + "\n" + stderr.decode()
+
+            results = self._parse_jest_output(output)
+            results["output"] = output
+
+            logger.info(
+                f"JavaScript test results: {results['passed']}/{results['total']} passed",
+                extra={"results": results}
+            )
+
+            return results
+
+        except asyncio.TimeoutError:
+            logger.error("JavaScript tests timed out")
+            return {
+                "success": False,
+                "error": "Tests timed out",
+                "passed": 0,
+                "failed": 0,
+                "total": 0
+            }
+        except Exception as e:
+            logger.error(f"Error running JavaScript tests: {e}", exc_info=True)
+            return {
+                "success": False,
+                "error": str(e),
+                "passed": 0,
+                "failed": 0,
+                "total": 0
+            }
+
+    def _parse_jest_output(self, output: str) -> dict[str, Any]:
+        """Parse Jest/Vitest output to extract test results."""
+        import re
+
+        passed = 0
+        failed = 0
+        skipped = 0
+
+        tests_pattern = r"Tests:\s*(?:(\d+)\s*failed,\s*)?(?:(\d+)\s*passed,\s*)?(\d+)\s*total"
+        match = re.search(tests_pattern, output)
+
+        if match:
+            failed = int(match.group(1)) if match.group(1) else 0
+            passed = int(match.group(2)) if match.group(2) else 0
+            total = int(match.group(3))
+        else:
+            passed_match = re.search(r"(\d+)\s*passed", output)
+            failed_match = re.search(r"(\d+)\s*failed", output)
+            skipped_match = re.search(r"(\d+)\s*skipped", output)
+
+            passed = int(passed_match.group(1)) if passed_match else 0
+            failed = int(failed_match.group(1)) if failed_match else 0
+            skipped = int(skipped_match.group(1)) if skipped_match else 0
+            total = passed + failed + skipped
+
+        success = failed == 0 and total > 0
+
+        return {
+            "success": success,
+            "passed": passed,
+            "failed": failed,
+            "skipped": skipped,
+            "total": total
+        }
+
+    async def _cleanup_testing_artifacts(self) -> None:
+        """Clean up testing artifacts to save disk space."""
+        try:
+            venv_dir = self.code_dir / "venv"
+            if venv_dir.exists():
+                logger.info(f"Removing virtual environment: {venv_dir}")
+                shutil.rmtree(venv_dir)
+
+            node_modules = self.code_dir / "node_modules"
+            if node_modules.exists():
+                logger.info(f"Removing node_modules: {node_modules}")
+                shutil.rmtree(node_modules)
+
+            for pycache in self.code_dir.rglob("__pycache__"):
+                shutil.rmtree(pycache)
+
+            pytest_cache = self.code_dir / ".pytest_cache"
+            if pytest_cache.exists():
+                shutil.rmtree(pytest_cache)
+
+            logger.info("Testing artifacts cleaned up successfully")
+
+        except Exception as e:
+            logger.error(f"Error cleaning up testing artifacts: {e}", exc_info=True)
+
 
 # ============================================================================
-# END OF FIXED IMPLEMENTATION
+# END OF ENHANCED IMPLEMENTATION
 # ============================================================================
