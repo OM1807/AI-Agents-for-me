@@ -1,9 +1,16 @@
 """
-Requirements To Code agent workflow implementation - ENHANCED VERSION.
+Requirements To Code agent workflow implementation - V5.0 WITH CONTEXTUAL ACTIONS.
 
-This is the ENHANCED implementation with all critical bugs fixed PLUS new features.
+This is the V5.0 implementation with contextual actions support.
 
-FIXES AND ENHANCEMENTS APPLIED:
+NEW IN V5.0:
+1. ✅ Contextual Actions: Agent returns action options after code generation
+2. ✅ Two-Phase Workflow: Analysis → User Selection → Action Execution
+3. ✅ Backward Compatible: Still supports old API with output_config
+4. ✅ Smart Action Suggestions: Based on integrations and inputs
+5. ✅ Session State Management: Actions stored in session.custom_properties
+
+PREVIOUSLY FIXED (V3.0-ENHANCED):
 1. ✅ Fixed GitOps clone_repository parameter name (destination_dir)
 2. ✅ Fixed clone destination logic (clone to workspace, then move to code_dir)
 3. ✅ Fixed file scanning to not exclude cloned repositories
@@ -11,14 +18,14 @@ FIXES AND ENHANCEMENTS APPLIED:
 5. ✅ Fixed prepare method to yield instead of return
 6. ✅ Added better error handling and user-friendly messages
 7. ✅ Added output configuration validation
-8. ✅ NEW: Intelligent output mode detection (fixes repository existence error)
-9. ✅ NEW: Automated testing feature (Python + JavaScript support)
-10. ✅ NEW: Dependency installation in isolated environments
-11. ✅ NEW: Test result parsing and blocking on failures
-12. ✅ NEW: Automatic cleanup of testing artifacts
+8. ✅ Intelligent output mode detection (fixes repository existence error)
+9. ✅ Automated testing feature (Python + JavaScript support)
+10. ✅ Dependency installation in isolated environments
+11. ✅ Test result parsing and blocking on failures
+12. ✅ Automatic cleanup of testing artifacts
 
 Author: DevOrbit AI Team (Enhanced by Claude)
-Version: 3.0-ENHANCED
+Version: 5.0-CONTEXTUAL_ACTIONS
 Date: January 2025
 """
 
@@ -71,9 +78,15 @@ class WorkspaceError(Exception):
 @register(AgentIdentifier.REQUIREMENTS_TO_CODE)
 class RequirementsToCodeWorkflow(AgentWorkflow):
     """
-    ENHANCED workflow for building production-ready code from requirements.
+    V5.0 workflow for building production-ready code from requirements with CONTEXTUAL ACTIONS.
 
-    Features:
+    NEW Features (V5.0):
+    - Contextual Actions: Returns actionable options after code generation
+    - Two-Phase Workflow: User chooses action after seeing generated code
+    - Smart Suggestions: Action availability based on integrations and inputs
+    - Backward Compatible: Old API with output_config still works
+
+    Previous Features (V3.0):
     - Multi-source requirement fetching (Jira, ClickUp, Files)
     - Automatic integration detection
     - Comprehensive error handling
@@ -84,10 +97,9 @@ class RequirementsToCodeWorkflow(AgentWorkflow):
     - Intelligent mode detection for vibe coding
     - Automated testing with dependency isolation
 
-    Supports three output modes:
-    1. new_repo: Create a new GitHub repository
-    2. pull_request: Create a PR in existing repository
-    3. workspace_only: Generate code in workspace without GitHub operations
+    Workflow Modes:
+    1. NEW API (Contextual Actions): No output_config → Generate code → Return actions
+    2. OLD API (Direct Execution): With output_config → Generate code → Auto-execute
     """
 
     identifier = AgentIdentifier.REQUIREMENTS_TO_CODE
@@ -134,8 +146,11 @@ class RequirementsToCodeWorkflow(AgentWorkflow):
         # HTTP client for API requests (reused for connection pooling)
         self._http_client: httpx.AsyncClient | None = None
 
+        # ✅ NEW: Store analysis results for contextual action generation
+        self.analysis_results: dict[str, Any] = {}
+
         logger.info(
-            f"Initialized RequirementsToCodeWorkflow (ENHANCED VERSION)",
+            f"Initialized RequirementsToCodeWorkflow (V5.0-CONTEXTUAL_ACTIONS)",
             extra={
                 "workspace_dir": str(workspace_dir),
                 "code_dir": str(self.code_dir),
@@ -893,9 +908,11 @@ Acceptance Criteria:
             if not inputs:
                 raise WorkspaceError("No input sources specified for code generation")
 
-            # Validate output configuration
-            output_config = properties.get("output_config", {})
-            await self._validate_output_config(output_config)
+            # ✅ NEW: For contextual actions mode, output_config may not exist
+            # Only validate if it exists (backward compatibility)
+            output_config = properties.get("output_config")
+            if output_config:
+                await self._validate_output_config(output_config)
 
             # Fetch requirements from all sources
             async for event in self._fetch_all_requirements(inputs, session):
@@ -906,9 +923,20 @@ Acceptance Criteria:
                 extra={"count": len(self.requirements_cache)}
             )
 
-            # Handle repository cloning for PR mode
-            if output_config.get("type") == "pull_request":
+            # ✅ NEW: Handle repository cloning for PR mode (only if output_config exists)
+            # In contextual actions mode, cloning happens during action execution
+            if output_config and output_config.get("type") == "pull_request":
                 async for event in self._clone_target_repository(output_config):
+                    yield event
+            # ✅ NEW: Also clone if github_repo is provided directly (contextual actions mode)
+            elif properties.get("github_repo"):
+                github_repo = properties["github_repo"]
+                temp_config = {
+                    "type": "pull_request",
+                    "repo_url": github_repo.get("url"),
+                    "base_branch": github_repo.get("branch", "main"),
+                }
+                async for event in self._clone_target_repository(temp_config):
                     yield event
 
             logger.info("Workspace preparation completed successfully")
@@ -1099,10 +1127,11 @@ Acceptance Criteria:
             "requirements_count": len(self.requirements_cache),
         }
 
-        # Add output configuration
+        # Add output configuration if present (for backward compatibility)
         properties = session.custom_properties or {}
-        output_config = properties.get("output_config", {})
-        context["output_config"] = output_config
+        output_config = properties.get("output_config")
+        if output_config:
+            context["output_config"] = output_config
 
         # Use base class template renderer
         return await super()._prepare_system_prompt(session=session, **context)
@@ -1151,26 +1180,432 @@ Acceptance Criteria:
         return prompt
 
     # ========================================================================
-    # WORKFLOW PHASE: RUN
+    # ✅ NEW: CONTEXTUAL ACTIONS GENERATION (V5.0 Feature)
+    # ========================================================================
+
+    async def _check_github_integration(self) -> bool:
+        """
+        Check if GitHub integration is available.
+
+        Returns:
+            bool: True if GitHub integration is configured
+        """
+        try:
+            token = await self._get_github_token()
+            return token is not None
+        except Exception:
+            return False
+
+    def _extract_github_repo_from_inputs(self, session: UserAgentSession) -> dict | None:
+        """
+        Extract github_repo from session custom_properties.
+
+        Returns:
+            dict with url and branch, or None if not found
+        """
+        properties = session.custom_properties or {}
+        github_repo = properties.get("github_repo")
+        if github_repo and github_repo.get("url"):
+            return github_repo
+        return None
+
+    def _extract_jira_ticket_from_inputs(self, session: UserAgentSession) -> dict | None:
+        """
+        Extract Jira ticket information from inputs.
+
+        Returns:
+            dict with provider and key, or None if not found
+        """
+        properties = session.custom_properties or {}
+        inputs = properties.get("inputs", [])
+        for inp in inputs:
+            if inp.get("provider") == "jira" and inp.get("key"):
+                return {"provider": "jira", "key": inp["key"]}
+        return None
+
+    def _suggest_repo_name(self, session: UserAgentSession) -> str:
+        """
+        Suggest a repository name based on inputs.
+
+        Returns:
+            str: Suggested repository name
+        """
+        properties = session.custom_properties or {}
+        inputs = properties.get("inputs", [])
+
+        # Try to extract meaningful name from first input
+        if inputs:
+            first_input = inputs[0]
+            if first_input.get("provider") == "jira":
+                key = first_input.get("key", "")
+                # Convert PROJ-123 to proj-123
+                return key.lower().replace("_", "-")
+            elif first_input.get("provider") == "clickup":
+                task_id = first_input.get("id", "")
+                return f"clickup-task-{task_id}"
+            elif first_input.get("file_name"):
+                filename = first_input["file_name"]
+                # Remove extension and convert to kebab-case
+                name = Path(filename).stem.lower().replace("_", "-").replace(" ", "-")
+                return name
+
+        # Fallback
+        return f"ai-generated-app-{session.id}"
+
+    def _suggest_repo_description(self, session: UserAgentSession) -> str:
+        """
+        Suggest a repository description based on inputs.
+
+        Returns:
+            str: Suggested repository description
+        """
+        properties = session.custom_properties or {}
+        inputs = properties.get("inputs", [])
+
+        if inputs:
+            first_input = inputs[0]
+            if first_input.get("provider") == "jira":
+                # Try to get summary from cached requirements
+                key = first_input.get("key", "")
+                cache_key = f"jira_{key}"
+                if cache_key in self.requirements_cache:
+                    summary = self.requirements_cache[cache_key].get("summary", "")
+                    if summary:
+                        return f"AI-generated code for Jira ticket: {summary}"
+                return f"AI-generated code for Jira ticket {key}"
+            elif first_input.get("provider") == "clickup":
+                return "AI-generated code from ClickUp task"
+            elif first_input.get("file_name"):
+                return f"AI-generated code from {first_input['file_name']}"
+
+        return "AI-generated code from requirements"
+
+    def _suggest_branch_name(self, session: UserAgentSession) -> str:
+        """
+        Suggest a branch name for PR.
+
+        Returns:
+            str: Suggested branch name
+        """
+        properties = session.custom_properties or {}
+        inputs = properties.get("inputs", [])
+
+        if inputs:
+            first_input = inputs[0]
+            if first_input.get("provider") == "jira":
+                key = first_input.get("key", "").lower()
+                return f"feature/{key}"
+            elif first_input.get("provider") == "clickup":
+                task_id = first_input.get("id", "")
+                return f"feature/clickup-{task_id}"
+
+        return f"feature/ai-generated-{session.id}"
+
+    def _suggest_pr_title(self, session: UserAgentSession) -> str:
+        """
+        Suggest a PR title based on inputs.
+
+        Returns:
+            str: Suggested PR title
+        """
+        properties = session.custom_properties or {}
+        inputs = properties.get("inputs", [])
+
+        if inputs:
+            first_input = inputs[0]
+            if first_input.get("provider") == "jira":
+                key = first_input.get("key", "")
+                cache_key = f"jira_{key}"
+                if cache_key in self.requirements_cache:
+                    summary = self.requirements_cache[cache_key].get("summary", "")
+                    if summary:
+                        return f"feat: {summary} ({key})"
+                return f"feat: Implement {key}"
+            elif first_input.get("provider") == "clickup":
+                task_id = first_input.get("id", "")
+                return f"feat: Implement ClickUp task {task_id}"
+            elif first_input.get("file_name"):
+                return f"feat: Implement requirements from {first_input['file_name']}"
+
+        return "feat: AI-generated code implementation"
+
+    def _suggest_pr_body(self, session: UserAgentSession) -> str:
+        """
+        Suggest a PR body/description based on inputs.
+
+        Returns:
+            str: Suggested PR body
+        """
+        properties = session.custom_properties or {}
+        inputs = properties.get("inputs", [])
+
+        lines = ["## Description", ""]
+        lines.append("This pull request contains AI-generated code based on the following requirements:")
+        lines.append("")
+
+        for inp in inputs:
+            if inp.get("provider") == "jira":
+                key = inp.get("key", "")
+                cache_key = f"jira_{key}"
+                if cache_key in self.requirements_cache:
+                    summary = self.requirements_cache[cache_key].get("summary", "")
+                    lines.append(f"- **Jira Ticket {key}**: {summary}")
+                else:
+                    lines.append(f"- Jira Ticket {key}")
+            elif inp.get("provider") == "clickup":
+                task_id = inp.get("id", "")
+                lines.append(f"- ClickUp Task {task_id}")
+            elif inp.get("file_name"):
+                lines.append(f"- Document: {inp['file_name']}")
+
+        lines.append("")
+        lines.append("## Changes")
+        lines.append("")
+
+        # Add file count from analysis results
+        file_count = self.analysis_results.get("file_count", 0)
+        if file_count > 0:
+            lines.append(f"- Generated {file_count} files")
+
+        # Add test info if available
+        has_tests = self.analysis_results.get("has_tests", False)
+        if has_tests:
+            lines.append("- Includes automated tests")
+
+        lines.append("")
+        lines.append(f"---")
+        lines.append(f"*Generated by DevOrbit AI Agent (Session: {session.id})*")
+
+        return "\n".join(lines)
+
+    def _generate_jira_comment_template(self, session: UserAgentSession) -> str:
+        """
+        Generate a Jira comment template.
+
+        Returns:
+            str: Suggested Jira comment
+        """
+        file_count = self.analysis_results.get("file_count", 0)
+        has_tests = self.analysis_results.get("has_tests", False)
+
+        lines = ["✅ *AI Code Generation Complete*", ""]
+        lines.append(f"The code for this ticket has been generated successfully:")
+        lines.append(f"- {file_count} files created")
+
+        if has_tests:
+            lines.append("- Automated tests included")
+
+        lines.append("")
+        lines.append("The code is ready for review.")
+        lines.append("")
+        lines.append(f"_Generated by DevOrbit AI Agent (Session: {session.id})_")
+
+        return "\n".join(lines)
+
+    def _calculate_workspace_size(self) -> str:
+        """
+        Calculate total size of workspace files.
+
+        Returns:
+            str: Human-readable size (e.g., "2.5 MB")
+        """
+        total_bytes = 0
+        for file_path_str in self.generated_files.values():
+            file_path = Path(file_path_str)
+            if file_path.exists():
+                total_bytes += file_path.stat().st_size
+
+        # Convert to human-readable format
+        for unit in ['B', 'KB', 'MB', 'GB']:
+            if total_bytes < 1024.0:
+                return f"{total_bytes:.1f} {unit}"
+            total_bytes /= 1024.0
+
+        return f"{total_bytes:.1f} TB"
+
+    async def _generate_contextual_actions(self, session: UserAgentSession) -> list[dict[str, Any]]:
+        """
+        Generate contextual actions based on analysis results and integrations.
+
+        This is the CORE of V5.0 - generates action options for the user to choose from.
+
+        Returns:
+            list: List of action dictionaries with id, title, description, available, etc.
+        """
+        logger.info("Generating contextual actions based on analysis results")
+
+        actions = []
+
+        # Check integrations
+        has_github = await self._check_github_integration()
+        github_repo = self._extract_github_repo_from_inputs(session)
+        jira_ticket = self._extract_jira_ticket_from_inputs(session)
+
+        # Get analysis stats
+        file_count = self.analysis_results.get("file_count", 0)
+        has_tests = self.analysis_results.get("has_tests", False)
+        project_type = self.analysis_results.get("project_type", "unknown")
+
+        # ===== ACTION 1: Create New Repository =====
+        create_repo_action = {
+            "id": "create_new_repo",
+            "title": "Create New GitHub Repository",
+            "description": "Create a brand new GitHub repository with the generated code",
+            "icon": "repo",
+            "available": has_github and file_count > 0,
+            "reason": None,
+            "metadata": {
+                "suggested_name": self._suggest_repo_name(session),
+                "suggested_description": self._suggest_repo_description(session),
+                "suggested_private": True,
+                "file_count": file_count,
+            }
+        }
+
+        if not has_github:
+            create_repo_action["reason"] = "GitHub integration not connected"
+        elif file_count == 0:
+            create_repo_action["reason"] = "No files generated"
+
+        actions.append(create_repo_action)
+
+        # ===== ACTION 2: Create Pull Request =====
+        create_pr_action = {
+            "id": "create_pull_request",
+            "title": "Create Pull Request",
+            "description": "Create a pull request in an existing repository",
+            "icon": "git-pull-request",
+            "available": has_github and file_count > 0 and github_repo is not None,
+            "reason": None,
+            "metadata": {
+                "repo_url": github_repo.get("url") if github_repo else None,
+                "base_branch": github_repo.get("branch", "main") if github_repo else "main",
+                "suggested_branch": self._suggest_branch_name(session),
+                "suggested_title": self._suggest_pr_title(session),
+                "suggested_body": self._suggest_pr_body(session),
+                "file_count": file_count,
+            }
+        }
+
+        if not has_github:
+            create_pr_action["reason"] = "GitHub integration not connected"
+        elif file_count == 0:
+            create_pr_action["reason"] = "No files generated"
+        elif not github_repo:
+            create_pr_action["reason"] = "No target repository specified in request"
+
+        actions.append(create_pr_action)
+
+        # ===== ACTION 3: Download Workspace =====
+        workspace_size = self._calculate_workspace_size()
+        download_action = {
+            "id": "download_workspace",
+            "title": "Download Generated Code",
+            "description": "Download all generated files as a ZIP archive",
+            "icon": "download",
+            "available": file_count > 0,
+            "reason": None if file_count > 0 else "No files generated",
+            "metadata": {
+                "file_count": file_count,
+                "workspace_size": workspace_size,
+                "workspace_path": str(self.code_dir),
+            }
+        }
+        actions.append(download_action)
+
+        # ===== ACTION 4: Run Tests =====
+        run_tests_action = {
+            "id": "run_tests",
+            "title": "Run Automated Tests",
+            "description": "Execute automated tests on the generated code",
+            "icon": "beaker",
+            "available": has_tests and project_type in ["python", "javascript"],
+            "reason": None,
+            "metadata": {
+                "project_type": project_type,
+                "test_framework": "pytest" if project_type == "python" else "jest/vitest",
+            }
+        }
+
+        if not has_tests:
+            run_tests_action["reason"] = "No test files detected in generated code"
+        elif project_type not in ["python", "javascript"]:
+            run_tests_action["reason"] = f"Testing not supported for {project_type} projects"
+
+        actions.append(run_tests_action)
+
+        # ===== ACTION 5: Comment on Jira =====
+        comment_jira_action = {
+            "id": "comment_jira",
+            "title": "Add Comment to Jira Ticket",
+            "description": "Post a comment to the Jira ticket with code generation status",
+            "icon": "comment",
+            "available": jira_ticket is not None and file_count > 0,
+            "reason": None,
+            "metadata": {
+                "ticket_key": jira_ticket.get("key") if jira_ticket else None,
+                "suggested_comment": self._generate_jira_comment_template(session),
+            }
+        }
+
+        if not jira_ticket:
+            comment_jira_action["reason"] = "No Jira ticket in inputs"
+        elif file_count == 0:
+            comment_jira_action["reason"] = "No files generated"
+
+        actions.append(comment_jira_action)
+
+        # Log action summary
+        available_count = sum(1 for a in actions if a["available"])
+        logger.info(
+            f"Generated {len(actions)} contextual actions ({available_count} available)",
+            extra={
+                "total": len(actions),
+                "available": available_count,
+                "has_github": has_github,
+                "has_github_repo": github_repo is not None,
+                "has_jira": jira_ticket is not None,
+            }
+        )
+
+        return actions
+
+    # ========================================================================
+    # WORKFLOW PHASE: RUN (Modified for Contextual Actions)
     # ========================================================================
 
     async def run(
         self, *, session: UserAgentSession, messages: list[dict[str, Any]]
     ) -> AsyncIterator[dict[str, Any]]:
         """
-        Run the code building workflow: Prepare -> Generate -> Test -> Finalize.
+        Run the code building workflow with CONTEXTUAL ACTIONS support.
+
+        NEW BEHAVIOR (V5.0):
+        - Detects if request uses NEW API (no output_config) or OLD API (with output_config)
+        - NEW API: Prepare → Generate → Return contextual actions
+        - OLD API: Prepare → Generate → Auto-execute finalize (backward compatible)
 
         Args:
             session: User agent session
             messages: List of messages
 
         Yields:
-            Agent events (text, tool_call, tool_result, finish)
+            Agent events (text, tool_call, tool_result, data-contextual_actions, finish)
         """
         try:
             logger.info(
-                f"Starting Requirements-to-Code workflow (ENHANCED VERSION)",
+                f"Starting Requirements-to-Code workflow (V5.0-CONTEXTUAL_ACTIONS)",
                 extra={"session_id": str(session.id)}
+            )
+
+            # Detect API mode (NEW vs OLD)
+            properties = session.custom_properties or {}
+            output_config = properties.get("output_config")
+            is_new_api = not output_config or not output_config.get("type")
+
+            logger.info(
+                f"API mode: {'NEW (contextual actions)' if is_new_api else 'OLD (direct execution)'}",
+                extra={"is_new_api": is_new_api, "has_output_config": output_config is not None}
             )
 
             # Phase 1: Preparation
@@ -1253,109 +1688,79 @@ Acceptance Criteria:
                     "data": {"text": "⚠️ No files found in workspace after generation"},
                 }
 
-            # ✅ NEW: Phase 3.5: Automated Testing (Issue #2 Fix)
-            if await self._should_run_tests(session):
-                yield {"type": "text", "data": {"text": "🧪 Starting automated testing phase..."}}
+            # ✅ NEW: Store analysis results for contextual action generation
+            self.analysis_results = {
+                "file_count": file_count,
+                "has_tests": self._test_files_exist(),
+                "project_type": await self._detect_project_type(),
+            }
 
-                try:
-                    test_results = await self._run_automated_tests()
+            # ✅ NEW: Phase 4: Route based on API mode
+            if is_new_api:
+                # NEW API: Generate and return contextual actions
+                logger.info("NEW API: Generating contextual actions")
+                yield {"type": "text", "data": {"text": "🎯 Generating contextual actions..."}}
 
-                    if test_results["success"]:
-                        yield {
-                            "type": "text",
-                            "data": {
-                                "text": f"✅ All tests passed! ({test_results['passed']}/{test_results['total']} tests)"
-                            }
-                        }
-                        logger.info(f"Tests passed: {test_results['passed']}/{test_results['total']}")
-                    else:
-                        yield {
-                            "type": "text",
-                            "data": {
-                                "text": f"❌ Tests failed: {test_results['failed']}/{test_results['total']} tests failed"
-                            }
-                        }
-                        yield {
-                            "type": "text",
-                            "data": {
-                                "text": "⚠️ Code will not be pushed to GitHub due to test failures"
-                            }
-                        }
+                contextual_actions = await self._generate_contextual_actions(session)
 
-                        # Show test output (first 1000 chars)
-                        if test_results.get("output"):
-                            yield {
-                                "type": "text",
-                                "data": {
-                                    "text": f"📋 Test Output:\n```\n{test_results['output'][:1000]}\n```"
-                                }
-                            }
+                # Store actions in session for later execution
+                properties["contextual_actions"] = contextual_actions
+                properties["analysis_results"] = self.analysis_results
+                session.custom_properties = properties
 
-                        logger.warning("Aborting workflow due to test failures")
-                        yield {"type": "finish", "data": {"finishReason": "test_failure"}}
-                        return
-
-                except Exception as test_error:
-                    logger.error(f"Error running tests: {test_error}", exc_info=True)
-                    yield {
-                        "type": "text",
-                        "data": {
-                            "text": f"⚠️ Testing failed with error: {test_error}. Proceeding without tests."
-                        }
+                # Emit contextual actions event
+                yield {
+                    "type": "data-contextual_actions",
+                    "data": {
+                        "actions": contextual_actions,
+                        "analysis": self.analysis_results,
                     }
+                }
+
+                logger.info(
+                    f"Emitted {len(contextual_actions)} contextual actions",
+                    extra={"action_count": len(contextual_actions)}
+                )
+
+                yield {"type": "text", "data": {"text": "✅ Code generation complete. Choose an action to proceed."}}
+
             else:
-                logger.info("Automated testing disabled or no test files found")
+                # OLD API: Execute finalize automatically (backward compatibility)
+                logger.info("OLD API: Auto-executing finalize")
 
-            # Phase 4: Finalization
-            properties = session.custom_properties or {}
-            output_config = properties.get("output_config", {})
-            output_type = output_config.get("type")
+                output_type = output_config.get("type")
 
-            # ✅ FIX ISSUE #1: Intelligent mode detection for vibe coding
-            # Detect if we're working with an existing repository and adjust output type
-            if session.llm_session_id and output_type == "new_repo":
-                # This is a vibe coding session (follow-up request)
-                # Check if .git directory exists (indicating existing repo)
-                if (self.code_dir / ".git").is_dir():
-                    logger.warning(
-                        "Vibe coding session detected with 'new_repo' mode, "
-                        "but repository already exists. Switching to 'pull_request' mode."
-                    )
-                    output_type = "pull_request"
-                    output_config["type"] = "pull_request"
+                # FIX ISSUE #1: Intelligent mode detection for vibe coding
+                if session.llm_session_id and output_type == "new_repo":
+                    if (self.code_dir / ".git").is_dir():
+                        logger.warning("Vibe coding: Switching from new_repo to pull_request mode")
+                        output_type = "pull_request"
+                        output_config["type"] = "pull_request"
 
-                    # Set repo_url if not present
-                    if not output_config.get("repo_url"):
-                        # Try to extract from git remote
-                        try:
-                            remote_output = await self._run_git_command(["git", "remote", "get-url", "origin"])
-                            output_config["repo_url"] = remote_output.strip()
-                            logger.info(f"Detected repository URL: {output_config['repo_url']}")
-                        except GitOperationError:
-                            logger.error("Could not determine repository URL for PR mode")
-                            # Fallback to workspace_only if we can't determine repo URL
-                            output_type = "workspace_only"
-                            output_config["type"] = "workspace_only"
-                            logger.warning("Falling back to workspace_only mode")
+                        if not output_config.get("repo_url"):
+                            try:
+                                remote_output = await self._run_git_command(["git", "remote", "get-url", "origin"])
+                                output_config["repo_url"] = remote_output.strip()
+                            except GitOperationError:
+                                output_type = "workspace_only"
+                                output_config["type"] = "workspace_only"
 
-                    # Set base branch if not present
-                    if not output_config.get("base_branch"):
-                        try:
-                            branch_output = await self._run_git_command(["git", "branch", "--show-current"])
-                            output_config["base_branch"] = branch_output.strip() or "main"
-                            logger.info(f"Using base branch: {output_config['base_branch']}")
-                        except GitOperationError:
-                            output_config["base_branch"] = "main"
+                        if not output_config.get("base_branch"):
+                            try:
+                                branch_output = await self._run_git_command(["git", "branch", "--show-current"])
+                                output_config["base_branch"] = branch_output.strip() or "main"
+                            except GitOperationError:
+                                output_config["base_branch"] = "main"
 
-            if output_type in ["new_repo", "pull_request"]:
-                if file_count == 0:
-                    yield {"type": "text", "data": {"text": "⚠️ Skipping GitHub step as no files were generated"}}
+                if output_type in ["new_repo", "pull_request"]:
+                    if file_count == 0:
+                        yield {"type": "text", "data": {"text": "⚠️ Skipping GitHub step as no files were generated"}}
+                    else:
+                        yield {"type": "text", "data": {"text": f"📦 Finalizing output: {output_type}..."}}
+                        async for event in self.finalize(session=session, messages=messages):
+                            yield event
                 else:
-                    yield {"type": "text", "data": {"text": f"📦 Finalizing output: {output_type}..."}}
-                    async for event in self.finalize(session=session, messages=messages):
-                        yield event
-            else:
-                yield {"type": "text", "data": {"text": "✅ Workflow complete. Files are in workspace"}}
+                    yield {"type": "text", "data": {"text": "✅ Workflow complete. Files are in workspace"}}
 
             logger.info("Requirements-to-Code workflow finished successfully")
             yield {"type": "finish", "data": {"finishReason": "stop"}}
@@ -1762,12 +2167,16 @@ Acceptance Criteria:
         if not github_token:
             raise GitHubAPIError("GitHub token not found for creating PR")
 
-        # Parse owner/repo from URL
-        match = re.search(r"github\.com/([^/]+)/([^/]+)(\.git)?$", repo_url)
+        # Parse owner/repo from URL - FIX #3: Better URL parsing
+        match = re.search(r"github\.com[:/]([^/]+)/([^/.]+)", repo_url)
         if not match:
             raise GitHubAPIError(f"Could not parse owner/repo from URL: {repo_url}")
 
         owner, repo = match.group(1), match.group(2)
+        # Strip .git suffix if present
+        if repo.endswith(".git"):
+            repo = repo[:-4]
+
         api_url = f"https://api.github.com/repos/{owner}/{repo}/pulls"
 
         logger.info(f"Creating GitHub PR: {head_branch} -> {base_branch} in {owner}/{repo}")
@@ -1848,6 +2257,10 @@ Acceptance Criteria:
         """
         Finalize workflow: Push code to GitHub (new repo or PR).
 
+        NOTE: In V5.0, this is called ONLY for:
+        - OLD API with output_config (backward compatibility)
+        - NEW API when user executes a contextual action via execute-action API
+
         Args:
             session: User agent session
             messages: List of messages
@@ -1859,7 +2272,7 @@ Acceptance Criteria:
             GitOperationError: If git operations fail
             GitHubAPIError: If GitHub operations fail
         """
-        logger.info("Finalizing Requirements-to-Code workflow (ENHANCED VERSION)")
+        logger.info("Finalizing Requirements-to-Code workflow (V5.0-CONTEXTUAL_ACTIONS)")
 
         properties = session.custom_properties or {}
         output_config = properties.get("output_config", {})
@@ -2026,7 +2439,7 @@ Acceptance Criteria:
         logger.info(f"Finalization complete: Files in workspace {self.code_dir}")
 
     # ========================================================================
-    # AUTOMATED TESTING SUPPORT (NEW FEATURE - ISSUE #2)
+    # AUTOMATED TESTING SUPPORT (FROM V3.0)
     # ========================================================================
 
     async def _should_run_tests(self, session: UserAgentSession) -> bool:
@@ -2490,5 +2903,5 @@ Acceptance Criteria:
 
 
 # ============================================================================
-# END OF ENHANCED IMPLEMENTATION
+# END OF V5.0 CONTEXTUAL ACTIONS IMPLEMENTATION
 # ============================================================================
