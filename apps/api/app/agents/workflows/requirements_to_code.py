@@ -1,9 +1,14 @@
 """
-Requirements To Code agent workflow implementation - V5.0 WITH CONTEXTUAL ACTIONS.
+Requirements To Code agent workflow implementation - V6.0 ENHANCED.
 
-This is the V5.0 implementation with contextual actions support.
+This is the V6.0 implementation with three major improvements.
 
-NEW IN V5.0:
+NEW IN V6.0 (THREE IMPROVEMENTS):
+1. ✅ Testing Before Contextual Actions: Tests run and block actions on failure
+2. ✅ Multi-Language Testing Support: Python, JS, Java, Go, C++, Rust, Ruby, PHP, C#
+3. ✅ In-Agent Contextual Action Execution: Auto-execute actions from output_config
+
+FEATURES FROM V5.0:
 1. ✅ Contextual Actions: Agent returns action options after code generation
 2. ✅ Two-Phase Workflow: Analysis → User Selection → Action Execution
 3. ✅ Backward Compatible: Still supports old API with output_config
@@ -19,13 +24,12 @@ PREVIOUSLY FIXED (V3.0-ENHANCED):
 6. ✅ Added better error handling and user-friendly messages
 7. ✅ Added output configuration validation
 8. ✅ Intelligent output mode detection (fixes repository existence error)
-9. ✅ Automated testing feature (Python + JavaScript support)
-10. ✅ Dependency installation in isolated environments
-11. ✅ Test result parsing and blocking on failures
-12. ✅ Automatic cleanup of testing artifacts
+9. ✅ Automated testing feature with dependency isolation
+10. ✅ Test result parsing and blocking on failures
+11. ✅ Automatic cleanup of testing artifacts
 
 Author: DevOrbit AI Team (Enhanced by Claude)
-Version: 5.0-CONTEXTUAL_ACTIONS
+Version: 6.0-ENHANCED
 Date: January 2025
 """
 
@@ -78,9 +82,15 @@ class WorkspaceError(Exception):
 @register(AgentIdentifier.REQUIREMENTS_TO_CODE)
 class RequirementsToCodeWorkflow(AgentWorkflow):
     """
-    V5.0 workflow for building production-ready code from requirements with CONTEXTUAL ACTIONS.
+    V6.0 workflow for building production-ready code from requirements (ENHANCED).
 
-    NEW Features (V5.0):
+    NEW Features (V6.0):
+    - Testing Before Contextual Actions: Tests run and block actions if they fail
+    - Multi-Language Testing: Supports 9 languages (Python, JS, Java, Go, C++, Rust, Ruby, PHP, C#)
+    - In-Agent Action Execution: Auto-execute contextual actions from output_config
+    - Enhanced Cleanup: Comprehensive artifact cleanup for all supported languages
+
+    Features from V5.0:
     - Contextual Actions: Returns actionable options after code generation
     - Two-Phase Workflow: User chooses action after seeing generated code
     - Smart Suggestions: Action availability based on integrations and inputs
@@ -98,8 +108,8 @@ class RequirementsToCodeWorkflow(AgentWorkflow):
     - Automated testing with dependency isolation
 
     Workflow Modes:
-    1. NEW API (Contextual Actions): No output_config → Generate code → Return actions
-    2. OLD API (Direct Execution): With output_config → Generate code → Auto-execute
+    1. NEW API (Contextual Actions): No output_config → Generate code → Test → Return actions → Auto-execute if pre-selected
+    2. OLD API (Direct Execution): With output_config → Generate code → Test → Auto-execute
     """
 
     identifier = AgentIdentifier.REQUIREMENTS_TO_CODE
@@ -150,7 +160,7 @@ class RequirementsToCodeWorkflow(AgentWorkflow):
         self.analysis_results: dict[str, Any] = {}
 
         logger.info(
-            f"Initialized RequirementsToCodeWorkflow (V5.0-CONTEXTUAL_ACTIONS)",
+            f"Initialized RequirementsToCodeWorkflow (V6.0-ENHANCED)",
             extra={
                 "workspace_dir": str(workspace_dir),
                 "code_dir": str(self.code_dir),
@@ -1578,12 +1588,18 @@ Acceptance Criteria:
         self, *, session: UserAgentSession, messages: list[dict[str, Any]]
     ) -> AsyncIterator[dict[str, Any]]:
         """
-        Run the code building workflow with CONTEXTUAL ACTIONS support.
+        Run the code building workflow with V6.0 ENHANCEMENTS.
 
-        NEW BEHAVIOR (V5.0):
+        NEW BEHAVIOR (V6.0):
+        - Tests run BEFORE contextual actions (blocks actions on test failure)
+        - Multi-language testing support (9 languages)
+        - In-agent contextual action auto-execution from output_config
+        - Comprehensive cleanup of all testing artifacts
+
+        V5.0 BEHAVIOR:
         - Detects if request uses NEW API (no output_config) or OLD API (with output_config)
-        - NEW API: Prepare → Generate → Return contextual actions
-        - OLD API: Prepare → Generate → Auto-execute finalize (backward compatible)
+        - NEW API: Prepare → Generate → Test → Return contextual actions → Auto-execute if pre-selected
+        - OLD API: Prepare → Generate → Test → Auto-execute finalize (backward compatible)
 
         Args:
             session: User agent session
@@ -1594,7 +1610,7 @@ Acceptance Criteria:
         """
         try:
             logger.info(
-                f"Starting Requirements-to-Code workflow (V5.0-CONTEXTUAL_ACTIONS)",
+                f"Starting Requirements-to-Code workflow (V6.0-ENHANCED)",
                 extra={"session_id": str(session.id)}
             )
 
@@ -1691,9 +1707,47 @@ Acceptance Criteria:
             # ✅ NEW: Store analysis results for contextual action generation
             self.analysis_results = {
                 "file_count": file_count,
-                "has_tests": self._test_files_exist(),
+                "has_tests": await self._test_files_exist(),
                 "project_type": await self._detect_project_type(),
             }
+
+            # ✅ IMPROVEMENT 1: Run tests BEFORE contextual actions (if enabled)
+            test_results = None
+            if await self._should_run_tests(session):
+                yield {"type": "text", "data": {"text": "🧪 Running automated tests..."}}
+
+                try:
+                    test_results = await self._run_automated_tests()
+
+                    if test_results.get("success"):
+                        yield {
+                            "type": "text",
+                            "data": {
+                                "text": f"✅ Tests passed: {test_results['passed']}/{test_results['total']} tests successful"
+                            }
+                        }
+                        # Store test results in analysis
+                        self.analysis_results["test_results"] = test_results
+                    else:
+                        # Tests failed - block contextual actions
+                        yield {
+                            "type": "text",
+                            "data": {
+                                "text": f"❌ Tests failed: {test_results['failed']}/{test_results['total']} tests failed\n\n{test_results.get('error', 'Check test output for details')}"
+                            }
+                        }
+                        yield {
+                            "type": "text",
+                            "data": {
+                                "text": "⚠️ Contextual actions blocked due to test failures. Please review the errors and decide:\n1. Fix the code and try again\n2. Skip tests and proceed anyway"
+                            }
+                        }
+                        yield {"type": "finish", "data": {"finishReason": "stop"}}
+                        return
+
+                finally:
+                    # Always cleanup testing artifacts
+                    await self._cleanup_testing_artifacts()
 
             # ✅ NEW: Phase 4: Route based on API mode
             if is_new_api:
@@ -1723,6 +1777,46 @@ Acceptance Criteria:
                 )
 
                 yield {"type": "text", "data": {"text": "✅ Code generation complete. Choose an action to proceed."}}
+
+                # ✅ IMPROVEMENT 3: Auto-execute contextual action if pre-selected
+                if output_config and output_config.get("type"):
+                    logger.info(f"Auto-executing pre-selected action: {output_config.get('type')}")
+
+                    # Map output_config type to contextual action IDs
+                    action_map = {
+                        "new_repo": "create_new_repo",
+                        "pull_request": "create_pull_request",
+                        "workspace_only": "download_workspace",
+                    }
+
+                    selected_action_id = action_map.get(output_config.get("type"))
+
+                    if selected_action_id:
+                        # Find if action is available
+                        selected_action = next(
+                            (a for a in contextual_actions if a["id"] == selected_action_id),
+                            None
+                        )
+
+                        if selected_action and selected_action.get("available"):
+                            yield {
+                                "type": "text",
+                                "data": {
+                                    "text": f"🚀 Auto-executing: {selected_action['title']}..."
+                                }
+                            }
+
+                            # Execute finalize with the selected action
+                            async for event in self.finalize(session=session, messages=messages):
+                                yield event
+                        else:
+                            reason = selected_action.get("reason", "Action not available") if selected_action else "Unknown action"
+                            yield {
+                                "type": "text",
+                                "data": {
+                                    "text": f"⚠️ Cannot auto-execute '{selected_action_id}': {reason}"
+                                }
+                            }
 
             else:
                 # OLD API: Execute finalize automatically (backward compatibility)
@@ -2257,9 +2351,9 @@ Acceptance Criteria:
         """
         Finalize workflow: Push code to GitHub (new repo or PR).
 
-        NOTE: In V5.0, this is called ONLY for:
+        NOTE: In V6.0, this is called ONLY for:
         - OLD API with output_config (backward compatibility)
-        - NEW API when user executes a contextual action via execute-action API
+        - NEW API when user pre-selects action via output_config (auto-execution)
 
         Args:
             session: User agent session
@@ -2272,7 +2366,7 @@ Acceptance Criteria:
             GitOperationError: If git operations fail
             GitHubAPIError: If GitHub operations fail
         """
-        logger.info("Finalizing Requirements-to-Code workflow (V5.0-CONTEXTUAL_ACTIONS)")
+        logger.info("Finalizing Requirements-to-Code workflow (V6.0-ENHANCED)")
 
         properties = session.custom_properties or {}
         output_config = properties.get("output_config", {})
@@ -2468,22 +2562,32 @@ Acceptance Criteria:
         logger.info("Automated testing enabled and test files found")
         return True
 
-    def _test_files_exist(self) -> bool:
+    async def _test_files_exist(self) -> bool:
         """
-        Check if test files exist in the generated code.
+        Check if test files exist in the generated code (MULTI-LANGUAGE SUPPORT).
 
         Returns:
             bool: True if test files are found
         """
         test_patterns = [
-            "tests/**/*.py",      # Python tests directory
-            "test_*.py",          # Python test files
-            "*_test.py",          # Python test files (alternative)
-            "**/__tests__/**/*.js",  # JavaScript tests directory
-            "**/*.test.js",       # JavaScript test files
-            "**/*.test.ts",       # TypeScript test files
-            "**/*.spec.js",       # JavaScript spec files
-            "**/*.spec.ts",       # TypeScript spec files
+            # Python
+            "tests/**/*.py", "test_*.py", "*_test.py",
+            # JavaScript/TypeScript
+            "**/__tests__/**/*.js", "**/*.test.js", "**/*.test.ts", "**/*.spec.js", "**/*.spec.ts",
+            # Java
+            "src/test/**/*.java", "**/Test*.java", "**/*Test.java", "**/*Tests.java",
+            # Go
+            "**/*_test.go",
+            # C/C++
+            "tests/**/*.cpp", "tests/**/*.c", "test_*.cpp", "test_*.c", "*_test.cpp", "*_test.c",
+            # Rust
+            "tests/**/*.rs",
+            # Ruby
+            "spec/**/*_spec.rb", "test/**/*_test.rb",
+            # PHP
+            "tests/**/*Test.php", "**/*Test.php",
+            # C#
+            "**/*.Tests/**/*.cs", "**/*Test.cs", "**/*Tests.cs",
         ]
 
         for pattern in test_patterns:
@@ -2496,10 +2600,10 @@ Acceptance Criteria:
 
     async def _detect_project_type(self) -> str:
         """
-        Detect project type based on files present.
+        Detect project type based on files present (MULTI-LANGUAGE SUPPORT).
 
         Returns:
-            str: Project type ("python", "javascript", "unknown")
+            str: Project type (python, javascript, java, go, cpp, rust, ruby, php, csharp, unknown)
         """
         # Check for Python
         if (self.code_dir / "requirements.txt").exists() or \
@@ -2513,12 +2617,54 @@ Acceptance Criteria:
             logger.info("Detected project type: JavaScript/TypeScript")
             return "javascript"
 
+        # Check for Java
+        if (self.code_dir / "pom.xml").exists() or \
+           (self.code_dir / "build.gradle").exists() or \
+           (self.code_dir / "build.gradle.kts").exists():
+            logger.info("Detected project type: Java")
+            return "java"
+
+        # Check for Go
+        if (self.code_dir / "go.mod").exists():
+            logger.info("Detected project type: Go")
+            return "go"
+
+        # Check for C++
+        if (self.code_dir / "CMakeLists.txt").exists() or \
+           list(self.code_dir.glob("*.cpp")) or \
+           list(self.code_dir.glob("**/*.cpp")):
+            logger.info("Detected project type: C++")
+            return "cpp"
+
+        # Check for Rust
+        if (self.code_dir / "Cargo.toml").exists():
+            logger.info("Detected project type: Rust")
+            return "rust"
+
+        # Check for Ruby
+        if (self.code_dir / "Gemfile").exists() or \
+           list(self.code_dir.glob("*.rb")):
+            logger.info("Detected project type: Ruby")
+            return "ruby"
+
+        # Check for PHP
+        if (self.code_dir / "composer.json").exists() or \
+           list(self.code_dir.glob("*.php")):
+            logger.info("Detected project type: PHP")
+            return "php"
+
+        # Check for C#
+        if list(self.code_dir.glob("*.csproj")) or \
+           list(self.code_dir.glob("*.sln")):
+            logger.info("Detected project type: C#")
+            return "csharp"
+
         logger.warning("Could not detect project type")
         return "unknown"
 
     async def _run_automated_tests(self) -> dict[str, Any]:
         """
-        Run automated tests on generated code.
+        Run automated tests on generated code (MULTI-LANGUAGE SUPPORT).
 
         Returns:
             dict: Test results with keys:
@@ -2533,10 +2679,23 @@ Acceptance Criteria:
 
         logger.info(f"Running tests for project type: {project_type}")
 
-        if project_type == "python":
-            return await self._run_python_tests()
-        elif project_type == "javascript":
-            return await self._run_javascript_tests()
+        # Route to appropriate test runner
+        test_runners = {
+            "python": self._run_python_tests,
+            "javascript": self._run_javascript_tests,
+            "java": self._run_java_tests,
+            "go": self._run_go_tests,
+            "cpp": self._run_cpp_tests,
+            "rust": self._run_rust_tests,
+            "ruby": self._run_ruby_tests,
+            "php": self._run_php_tests,
+            "csharp": self._run_csharp_tests,
+        }
+
+        runner = test_runners.get(project_type)
+
+        if runner:
+            return await runner()
         else:
             logger.warning(f"Testing not supported for project type: {project_type}")
             return {
@@ -2876,18 +3035,613 @@ Acceptance Criteria:
             "total": total
         }
 
-    async def _cleanup_testing_artifacts(self) -> None:
-        """Clean up testing artifacts to save disk space."""
+    # ========================================================================
+    # ✅ IMPROVEMENT 2: MULTI-LANGUAGE TEST RUNNERS
+    # ========================================================================
+
+    async def _run_java_tests(self) -> dict[str, Any]:
+        """Run Java tests using Maven or Gradle."""
         try:
+            logger.info("Starting Java test execution")
+
+            # Detect build tool
+            has_maven = (self.code_dir / "pom.xml").exists()
+            has_gradle = (self.code_dir / "build.gradle").exists() or (self.code_dir / "build.gradle.kts").exists()
+
+            if has_maven:
+                logger.info("Using Maven for testing")
+                process = await asyncio.create_subprocess_exec(
+                    "mvn", "test",
+                    stdout=asyncio.subprocess.PIPE,
+                    stderr=asyncio.subprocess.PIPE,
+                    cwd=self.code_dir
+                )
+            elif has_gradle:
+                logger.info("Using Gradle for testing")
+                process = await asyncio.create_subprocess_exec(
+                    "./gradlew", "test",
+                    stdout=asyncio.subprocess.PIPE,
+                    stderr=asyncio.subprocess.PIPE,
+                    cwd=self.code_dir
+                )
+            else:
+                return {
+                    "success": False,
+                    "error": "No Maven (pom.xml) or Gradle (build.gradle) configuration found",
+                    "passed": 0,
+                    "failed": 0,
+                    "total": 0
+                }
+
+            try:
+                stdout, stderr = await asyncio.wait_for(process.communicate(), timeout=600)
+            except asyncio.TimeoutError:
+                process.kill()
+                return {
+                    "success": False,
+                    "error": "Tests timed out after 10 minutes",
+                    "passed": 0,
+                    "failed": 0,
+                    "total": 0
+                }
+
+            output = stdout.decode() + "\n" + stderr.decode()
+            results = self._parse_java_test_output(output)
+            results["output"] = output
+
+            logger.info(f"Java test results: {results['passed']}/{results['total']} passed")
+            return results
+
+        except Exception as e:
+            logger.error(f"Error running Java tests: {e}", exc_info=True)
+            return {
+                "success": False,
+                "error": str(e),
+                "passed": 0,
+                "failed": 0,
+                "total": 0
+            }
+
+    def _parse_java_test_output(self, output: str) -> dict[str, Any]:
+        """Parse Maven/Gradle test output."""
+        import re
+
+        # Maven format: "Tests run: X, Failures: Y, Errors: Z, Skipped: W"
+        maven_match = re.search(r"Tests run:\s*(\d+),\s*Failures:\s*(\d+),\s*Errors:\s*(\d+),\s*Skipped:\s*(\d+)", output)
+
+        if maven_match:
+            total = int(maven_match.group(1))
+            failed = int(maven_match.group(2))
+            errors = int(maven_match.group(3))
+            skipped = int(maven_match.group(4))
+            passed = total - failed - errors - skipped
+
+            return {
+                "success": failed == 0 and errors == 0 and total > 0,
+                "passed": passed,
+                "failed": failed + errors,
+                "skipped": skipped,
+                "total": total
+            }
+
+        # Gradle format
+        gradle_match = re.search(r"(\d+)\s+tests?\s+completed,\s*(\d+)\s+failed", output)
+        if gradle_match:
+            total = int(gradle_match.group(1))
+            failed = int(gradle_match.group(2))
+            passed = total - failed
+
+            return {
+                "success": failed == 0 and total > 0,
+                "passed": passed,
+                "failed": failed,
+                "total": total
+            }
+
+        return {"success": False, "passed": 0, "failed": 0, "total": 0, "error": "Could not parse test output"}
+
+    async def _run_go_tests(self) -> dict[str, Any]:
+        """Run Go tests using go test."""
+        try:
+            logger.info("Starting Go test execution")
+
+            process = await asyncio.create_subprocess_exec(
+                "go", "test", "-v", "./...",
+                stdout=asyncio.subprocess.PIPE,
+                stderr=asyncio.subprocess.PIPE,
+                cwd=self.code_dir
+            )
+
+            try:
+                stdout, stderr = await asyncio.wait_for(process.communicate(), timeout=600)
+            except asyncio.TimeoutError:
+                process.kill()
+                return {
+                    "success": False,
+                    "error": "Tests timed out after 10 minutes",
+                    "passed": 0,
+                    "failed": 0,
+                    "total": 0
+                }
+
+            output = stdout.decode() + "\n" + stderr.decode()
+            results = self._parse_go_test_output(output)
+            results["output"] = output
+
+            logger.info(f"Go test results: {results['passed']}/{results['total']} passed")
+            return results
+
+        except Exception as e:
+            logger.error(f"Error running Go tests: {e}", exc_info=True)
+            return {
+                "success": False,
+                "error": str(e),
+                "passed": 0,
+                "failed": 0,
+                "total": 0
+            }
+
+    def _parse_go_test_output(self, output: str) -> dict[str, Any]:
+        """Parse go test output."""
+        import re
+
+        passed = len(re.findall(r"--- PASS:", output))
+        failed = len(re.findall(r"--- FAIL:", output))
+        skipped = len(re.findall(r"--- SKIP:", output))
+        total = passed + failed + skipped
+
+        return {
+            "success": failed == 0 and total > 0,
+            "passed": passed,
+            "failed": failed,
+            "skipped": skipped,
+            "total": total
+        }
+
+    async def _run_cpp_tests(self) -> dict[str, Any]:
+        """Run C++ tests using CTest."""
+        try:
+            logger.info("Starting C++ test execution")
+
+            # Check for CMakeLists.txt
+            if not (self.code_dir / "CMakeLists.txt").exists():
+                return {
+                    "success": False,
+                    "error": "No CMakeLists.txt found for C++ testing",
+                    "passed": 0,
+                    "failed": 0,
+                    "total": 0
+                }
+
+            # Create build directory
+            build_dir = self.code_dir / "build"
+            build_dir.mkdir(exist_ok=True)
+
+            # Configure with CMake
+            logger.info("Configuring CMake...")
+            configure_process = await asyncio.create_subprocess_exec(
+                "cmake", "..",
+                stdout=asyncio.subprocess.PIPE,
+                stderr=asyncio.subprocess.PIPE,
+                cwd=build_dir
+            )
+            await configure_process.communicate()
+
+            if configure_process.returncode != 0:
+                return {
+                    "success": False,
+                    "error": "CMake configuration failed",
+                    "passed": 0,
+                    "failed": 0,
+                    "total": 0
+                }
+
+            # Build
+            logger.info("Building C++ project...")
+            build_process = await asyncio.create_subprocess_exec(
+                "cmake", "--build", ".",
+                stdout=asyncio.subprocess.PIPE,
+                stderr=asyncio.subprocess.PIPE,
+                cwd=build_dir
+            )
+            await build_process.communicate()
+
+            if build_process.returncode != 0:
+                return {
+                    "success": False,
+                    "error": "Build failed",
+                    "passed": 0,
+                    "failed": 0,
+                    "total": 0
+                }
+
+            # Run tests with CTest
+            logger.info("Running CTest...")
+            test_process = await asyncio.create_subprocess_exec(
+                "ctest", "--output-on-failure",
+                stdout=asyncio.subprocess.PIPE,
+                stderr=asyncio.subprocess.PIPE,
+                cwd=build_dir
+            )
+
+            try:
+                stdout, stderr = await asyncio.wait_for(test_process.communicate(), timeout=600)
+            except asyncio.TimeoutError:
+                test_process.kill()
+                return {
+                    "success": False,
+                    "error": "Tests timed out after 10 minutes",
+                    "passed": 0,
+                    "failed": 0,
+                    "total": 0
+                }
+
+            output = stdout.decode() + "\n" + stderr.decode()
+            results = self._parse_ctest_output(output)
+            results["output"] = output
+
+            logger.info(f"C++ test results: {results['passed']}/{results['total']} passed")
+            return results
+
+        except Exception as e:
+            logger.error(f"Error running C++ tests: {e}", exc_info=True)
+            return {
+                "success": False,
+                "error": str(e),
+                "passed": 0,
+                "failed": 0,
+                "total": 0
+            }
+
+    def _parse_ctest_output(self, output: str) -> dict[str, Any]:
+        """Parse CTest output."""
+        import re
+
+        # Format: "100% tests passed, 0 tests failed out of 5"
+        match = re.search(r"(\d+)%\s+tests\s+passed,\s+(\d+)\s+tests\s+failed\s+out\s+of\s+(\d+)", output)
+
+        if match:
+            failed = int(match.group(2))
+            total = int(match.group(3))
+            passed = total - failed
+
+            return {
+                "success": failed == 0 and total > 0,
+                "passed": passed,
+                "failed": failed,
+                "total": total
+            }
+
+        return {"success": False, "passed": 0, "failed": 0, "total": 0}
+
+    async def _run_rust_tests(self) -> dict[str, Any]:
+        """Run Rust tests using cargo test."""
+        try:
+            logger.info("Starting Rust test execution")
+
+            process = await asyncio.create_subprocess_exec(
+                "cargo", "test",
+                stdout=asyncio.subprocess.PIPE,
+                stderr=asyncio.subprocess.PIPE,
+                cwd=self.code_dir
+            )
+
+            try:
+                stdout, stderr = await asyncio.wait_for(process.communicate(), timeout=600)
+            except asyncio.TimeoutError:
+                process.kill()
+                return {
+                    "success": False,
+                    "error": "Tests timed out after 10 minutes",
+                    "passed": 0,
+                    "failed": 0,
+                    "total": 0
+                }
+
+            output = stdout.decode() + "\n" + stderr.decode()
+            results = self._parse_rust_test_output(output)
+            results["output"] = output
+
+            logger.info(f"Rust test results: {results['passed']}/{results['total']} passed")
+            return results
+
+        except Exception as e:
+            logger.error(f"Error running Rust tests: {e}", exc_info=True)
+            return {
+                "success": False,
+                "error": str(e),
+                "passed": 0,
+                "failed": 0,
+                "total": 0
+            }
+
+    def _parse_rust_test_output(self, output: str) -> dict[str, Any]:
+        """Parse cargo test output."""
+        import re
+
+        # Format: "test result: ok. 5 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out"
+        match = re.search(r"(\d+)\s+passed;\s+(\d+)\s+failed;\s+(\d+)\s+ignored", output)
+
+        if match:
+            passed = int(match.group(1))
+            failed = int(match.group(2))
+            ignored = int(match.group(3))
+            total = passed + failed + ignored
+
+            return {
+                "success": failed == 0 and total > 0,
+                "passed": passed,
+                "failed": failed,
+                "skipped": ignored,
+                "total": total
+            }
+
+        return {"success": False, "passed": 0, "failed": 0, "total": 0}
+
+    async def _run_ruby_tests(self) -> dict[str, Any]:
+        """Run Ruby tests using RSpec or Minitest."""
+        try:
+            logger.info("Starting Ruby test execution")
+
+            # Install dependencies with Bundler if Gemfile exists
+            if (self.code_dir / "Gemfile").exists():
+                logger.info("Installing Ruby dependencies with Bundler...")
+                bundle_install = await asyncio.create_subprocess_exec(
+                    "bundle", "install",
+                    stdout=asyncio.subprocess.PIPE,
+                    stderr=asyncio.subprocess.PIPE,
+                    cwd=self.code_dir
+                )
+                await asyncio.wait_for(bundle_install.communicate(), timeout=300)
+
+            # Try RSpec first
+            if (self.code_dir / "spec").exists():
+                logger.info("Running RSpec tests...")
+                process = await asyncio.create_subprocess_exec(
+                    "bundle", "exec", "rspec",
+                    stdout=asyncio.subprocess.PIPE,
+                    stderr=asyncio.subprocess.PIPE,
+                    cwd=self.code_dir
+                )
+            else:
+                # Fall back to Minitest
+                logger.info("Running Minitest...")
+                process = await asyncio.create_subprocess_exec(
+                    "ruby", "-Itest", "-e", "Dir['test/**/*_test.rb'].each { |f| require_relative f }",
+                    stdout=asyncio.subprocess.PIPE,
+                    stderr=asyncio.subprocess.PIPE,
+                    cwd=self.code_dir
+                )
+
+            try:
+                stdout, stderr = await asyncio.wait_for(process.communicate(), timeout=600)
+            except asyncio.TimeoutError:
+                process.kill()
+                return {
+                    "success": False,
+                    "error": "Tests timed out after 10 minutes",
+                    "passed": 0,
+                    "failed": 0,
+                    "total": 0
+                }
+
+            output = stdout.decode() + "\n" + stderr.decode()
+            results = self._parse_ruby_test_output(output)
+            results["output"] = output
+
+            logger.info(f"Ruby test results: {results['passed']}/{results['total']} passed")
+            return results
+
+        except Exception as e:
+            logger.error(f"Error running Ruby tests: {e}", exc_info=True)
+            return {
+                "success": False,
+                "error": str(e),
+                "passed": 0,
+                "failed": 0,
+                "total": 0
+            }
+
+    def _parse_ruby_test_output(self, output: str) -> dict[str, Any]:
+        """Parse RSpec or Minitest output."""
+        import re
+
+        # RSpec format: "5 examples, 0 failures"
+        rspec_match = re.search(r"(\d+)\s+examples?,\s+(\d+)\s+failures?", output)
+        if rspec_match:
+            total = int(rspec_match.group(1))
+            failed = int(rspec_match.group(2))
+            passed = total - failed
+
+            return {
+                "success": failed == 0 and total > 0,
+                "passed": passed,
+                "failed": failed,
+                "total": total
+            }
+
+        # Minitest format: "5 runs, 10 assertions, 0 failures, 0 errors, 0 skips"
+        minitest_match = re.search(r"(\d+)\s+runs,\s+\d+\s+assertions,\s+(\d+)\s+failures,\s+(\d+)\s+errors", output)
+        if minitest_match:
+            total = int(minitest_match.group(1))
+            failed = int(minitest_match.group(2)) + int(minitest_match.group(3))
+            passed = total - failed
+
+            return {
+                "success": failed == 0 and total > 0,
+                "passed": passed,
+                "failed": failed,
+                "total": total
+            }
+
+        return {"success": False, "passed": 0, "failed": 0, "total": 0}
+
+    async def _run_php_tests(self) -> dict[str, Any]:
+        """Run PHP tests using PHPUnit."""
+        try:
+            logger.info("Starting PHP test execution")
+
+            # Install dependencies with Composer if composer.json exists
+            if (self.code_dir / "composer.json").exists():
+                logger.info("Installing PHP dependencies with Composer...")
+                composer_install = await asyncio.create_subprocess_exec(
+                    "composer", "install",
+                    stdout=asyncio.subprocess.PIPE,
+                    stderr=asyncio.subprocess.PIPE,
+                    cwd=self.code_dir
+                )
+                await asyncio.wait_for(composer_install.communicate(), timeout=300)
+
+            # Run PHPUnit
+            phpunit_path = self.code_dir / "vendor" / "bin" / "phpunit"
+            if phpunit_path.exists():
+                test_cmd = str(phpunit_path)
+            else:
+                test_cmd = "phpunit"
+
+            logger.info("Running PHPUnit tests...")
+            process = await asyncio.create_subprocess_exec(
+                test_cmd,
+                stdout=asyncio.subprocess.PIPE,
+                stderr=asyncio.subprocess.PIPE,
+                cwd=self.code_dir
+            )
+
+            try:
+                stdout, stderr = await asyncio.wait_for(process.communicate(), timeout=600)
+            except asyncio.TimeoutError:
+                process.kill()
+                return {
+                    "success": False,
+                    "error": "Tests timed out after 10 minutes",
+                    "passed": 0,
+                    "failed": 0,
+                    "total": 0
+                }
+
+            output = stdout.decode() + "\n" + stderr.decode()
+            results = self._parse_phpunit_output(output)
+            results["output"] = output
+
+            logger.info(f"PHP test results: {results['passed']}/{results['total']} passed")
+            return results
+
+        except Exception as e:
+            logger.error(f"Error running PHP tests: {e}", exc_info=True)
+            return {
+                "success": False,
+                "error": str(e),
+                "passed": 0,
+                "failed": 0,
+                "total": 0
+            }
+
+    def _parse_phpunit_output(self, output: str) -> dict[str, Any]:
+        """Parse PHPUnit output."""
+        import re
+
+        # Format: "OK (5 tests, 10 assertions)" or "FAILURES! Tests: 5, Assertions: 10, Failures: 2"
+        ok_match = re.search(r"OK\s+\((\d+)\s+tests?", output)
+        if ok_match:
+            total = int(ok_match.group(1))
+            return {
+                "success": True,
+                "passed": total,
+                "failed": 0,
+                "total": total
+            }
+
+        fail_match = re.search(r"Tests:\s+(\d+),\s+Assertions:\s+\d+,\s+Failures:\s+(\d+)", output)
+        if fail_match:
+            total = int(fail_match.group(1))
+            failed = int(fail_match.group(2))
+            passed = total - failed
+
+            return {
+                "success": False,
+                "passed": passed,
+                "failed": failed,
+                "total": total
+            }
+
+        return {"success": False, "passed": 0, "failed": 0, "total": 0}
+
+    async def _run_csharp_tests(self) -> dict[str, Any]:
+        """Run C# tests using dotnet test."""
+        try:
+            logger.info("Starting C# test execution")
+
+            process = await asyncio.create_subprocess_exec(
+                "dotnet", "test", "--no-build", "--verbosity", "normal",
+                stdout=asyncio.subprocess.PIPE,
+                stderr=asyncio.subprocess.PIPE,
+                cwd=self.code_dir
+            )
+
+            try:
+                stdout, stderr = await asyncio.wait_for(process.communicate(), timeout=600)
+            except asyncio.TimeoutError:
+                process.kill()
+                return {
+                    "success": False,
+                    "error": "Tests timed out after 10 minutes",
+                    "passed": 0,
+                    "failed": 0,
+                    "total": 0
+                }
+
+            output = stdout.decode() + "\n" + stderr.decode()
+            results = self._parse_dotnet_test_output(output)
+            results["output"] = output
+
+            logger.info(f"C# test results: {results['passed']}/{results['total']} passed")
+            return results
+
+        except Exception as e:
+            logger.error(f"Error running C# tests: {e}", exc_info=True)
+            return {
+                "success": False,
+                "error": str(e),
+                "passed": 0,
+                "failed": 0,
+                "total": 0
+            }
+
+    def _parse_dotnet_test_output(self, output: str) -> dict[str, Any]:
+        """Parse dotnet test output."""
+        import re
+
+        # Format: "Passed: 5, Failed: 0, Skipped: 0, Total: 5"
+        match = re.search(r"Passed:\s+(\d+),\s+Failed:\s+(\d+),\s+Skipped:\s+(\d+),\s+Total:\s+(\d+)", output)
+
+        if match:
+            passed = int(match.group(1))
+            failed = int(match.group(2))
+            skipped = int(match.group(3))
+            total = int(match.group(4))
+
+            return {
+                "success": failed == 0 and total > 0,
+                "passed": passed,
+                "failed": failed,
+                "skipped": skipped,
+                "total": total
+            }
+
+        return {"success": False, "passed": 0, "failed": 0, "total": 0}
+
+    # ========================================================================
+    # CLEANUP (Enhanced for all languages)
+    # ========================================================================
+
+    async def _cleanup_testing_artifacts(self) -> None:
+        """Clean up testing artifacts to save disk space (MULTI-LANGUAGE SUPPORT)."""
+        try:
+            # Python cleanup
             venv_dir = self.code_dir / "venv"
             if venv_dir.exists():
                 logger.info(f"Removing virtual environment: {venv_dir}")
                 shutil.rmtree(venv_dir)
-
-            node_modules = self.code_dir / "node_modules"
-            if node_modules.exists():
-                logger.info(f"Removing node_modules: {node_modules}")
-                shutil.rmtree(node_modules)
 
             for pycache in self.code_dir.rglob("__pycache__"):
                 shutil.rmtree(pycache)
@@ -2896,6 +3650,55 @@ Acceptance Criteria:
             if pytest_cache.exists():
                 shutil.rmtree(pytest_cache)
 
+            # JavaScript cleanup
+            node_modules = self.code_dir / "node_modules"
+            if node_modules.exists():
+                logger.info(f"Removing node_modules: {node_modules}")
+                shutil.rmtree(node_modules)
+
+            # Java cleanup
+            target_dir = self.code_dir / "target"
+            if target_dir.exists():
+                logger.info(f"Removing Maven target: {target_dir}")
+                shutil.rmtree(target_dir)
+
+            gradle_build = self.code_dir / "build"
+            if gradle_build.exists() and (self.code_dir / "build.gradle").exists():
+                logger.info(f"Removing Gradle build: {gradle_build}")
+                shutil.rmtree(gradle_build)
+
+            # C++ cleanup
+            cmake_build = self.code_dir / "build"
+            if cmake_build.exists() and (self.code_dir / "CMakeLists.txt").exists():
+                logger.info(f"Removing CMake build: {cmake_build}")
+                shutil.rmtree(cmake_build)
+
+            # Rust cleanup
+            rust_target = self.code_dir / "target"
+            if rust_target.exists() and (self.code_dir / "Cargo.toml").exists():
+                logger.info(f"Removing Rust target: {rust_target}")
+                shutil.rmtree(rust_target)
+
+            # Ruby cleanup
+            vendor_bundle = self.code_dir / "vendor" / "bundle"
+            if vendor_bundle.exists():
+                logger.info(f"Removing Ruby vendor/bundle: {vendor_bundle}")
+                shutil.rmtree(vendor_bundle)
+
+            # PHP cleanup
+            php_vendor = self.code_dir / "vendor"
+            if php_vendor.exists() and (self.code_dir / "composer.json").exists():
+                logger.info(f"Removing PHP vendor: {php_vendor}")
+                shutil.rmtree(php_vendor)
+
+            # C# cleanup
+            for bin_dir in self.code_dir.rglob("bin"):
+                if bin_dir.is_dir():
+                    shutil.rmtree(bin_dir)
+            for obj_dir in self.code_dir.rglob("obj"):
+                if obj_dir.is_dir():
+                    shutil.rmtree(obj_dir)
+
             logger.info("Testing artifacts cleaned up successfully")
 
         except Exception as e:
@@ -2903,5 +3706,5 @@ Acceptance Criteria:
 
 
 # ============================================================================
-# END OF V5.0 CONTEXTUAL ACTIONS IMPLEMENTATION
+# END OF V6.0 ENHANCED IMPLEMENTATION
 # ============================================================================
