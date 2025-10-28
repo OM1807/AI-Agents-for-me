@@ -914,17 +914,11 @@ Acceptance Criteria:
     # WORKFLOW PHASE: PREPARE
     # ========================================================================
 
-    async def prepare(
-        self, *, session: UserAgentSession, messages: list[dict[str, Any]]
+    async def _prepare_workspace(
+        self, session: UserAgentSession, messages: list[dict]
     ) -> AsyncIterator[dict[str, Any]]:
         """
-        Prepare workspace by fetching requirements from various sources.
-
-        Steps:
-        1. Create code directory
-        2. Fetch requirements from all input sources (parallel)
-        3. Cache requirements
-        4. Clone repository if PR mode
+        Prepare workspace by fetching requirements and cloning repositories.
 
         Args:
             session: User agent session
@@ -1001,50 +995,50 @@ Acceptance Criteria:
 
             logger.info("Workspace preparation completed successfully")
 
-        # ✅ NEW V7.0: Create artifacts directory and emit requirements artifact
-        artifacts_dir = self.workspace_dir / "artifacts"
-        artifacts_dir.mkdir(parents=True, exist_ok=True)
+            # ✅ FIXED: Moved artifact code INSIDE try block (was outside, causing syntax error)
+            # ✅ NEW V7.0: Create artifacts directory and emit requirements artifact
+            artifacts_dir = self.workspace_dir / "artifacts"
+            artifacts_dir.mkdir(parents=True, exist_ok=True)
 
-        if self.requirements_cache:
-            try:
-                requirements_artifact = {
-                    "artifact_type": "requirements",
-                    "artifact_id": "requirements-analysis",
-                    "timestamp": datetime.now().isoformat(),
-                    "sources": [
-                        {
-                            "type": req.get("provider", "unknown"),
-                            "key": req.get("key"),
-                            "title": req.get("summary", ""),
-                            "acceptance_criteria": req.get("acceptance_criteria", [])
-                        }
-                        for req in self.requirements_cache.values()
-                    ],
-                    "total_sources": len(self.requirements_cache),
-                }
-
-                self.requirements_analysis = requirements_artifact
-                requirements_file = artifacts_dir / "requirements.json"
-                requirements_file.write_text(json.dumps(requirements_artifact, indent=2))
-
-                yield {
-                    "type": "data-requirements",
-                    "data": {
+            if self.requirements_cache:
+                try:
+                    requirements_artifact = {
                         "artifact_type": "requirements",
-                        "actual_file_path": str(requirements_file),
-                        "file_path": "artifacts/requirements.json",
-                        "filename": "requirements.json",
-                        "content_type": "json",
                         "artifact_id": "requirements-analysis",
-                        "content": requirements_artifact
+                        "timestamp": datetime.now().isoformat(),
+                        "sources": [
+                            {
+                                "type": req.get("provider", "unknown"),
+                                "key": req.get("key"),
+                                "title": req.get("summary", ""),
+                                "acceptance_criteria": req.get("acceptance_criteria", [])
+                            }
+                            for req in self.requirements_cache.values()
+                        ],
+                        "total_sources": len(self.requirements_cache),
                     }
-                }
 
-                logger.info("Requirements artifact emitted")
+                    self.requirements_analysis = requirements_artifact
+                    requirements_file = artifacts_dir / "requirements.json"
+                    requirements_file.write_text(json.dumps(requirements_artifact, indent=2))
 
-            except Exception as artifact_error:
-                logger.warning(f"Failed to emit requirements artifact: {artifact_error}")
+                    yield {
+                        "type": "data-requirements",
+                        "data": {
+                            "artifact_type": "requirements",
+                            "actual_file_path": str(requirements_file),
+                            "file_path": "artifacts/requirements.json",
+                            "filename": "requirements.json",
+                            "content_type": "json",
+                            "artifact_id": "requirements-analysis",
+                            "content": requirements_artifact
+                        }
+                    }
 
+                    logger.info("Requirements artifact emitted")
+
+                except Exception as artifact_error:
+                    logger.warning(f"Failed to emit requirements artifact: {artifact_error}")
 
         except Exception as e:
             logger.error(f"Failed to prepare workspace: {e}", exc_info=True)
