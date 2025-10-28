@@ -1912,20 +1912,20 @@ Acceptance Criteria:
             yield {"type": "text", "data": {"text": "🤖 Generating code via LLM..."}}
 
             async for response in self.orchestrator.run(messages, system_prompt=system_prompt):
-            # ✅ NEW V7.0: Intercept artifact events
-            handled, event = await self._maybe_intercept_artifact_event(response)
+                # ✅ NEW V7.0: Intercept artifact events
+                handled, event = await self._maybe_intercept_artifact_event(response)
 
-            if handled:
-                if event is not None:
-                    yield event
-                    logger.info(
-                        f"Artifact event emitted: {event.get('type')}",
-                        extra={"artifact": (event.get("data") or {}).get("artifact_id")}
-                    )
-                continue
+                if handled:
+                    if event is not None:
+                        yield event
+                        logger.info(
+                            f"Artifact event emitted: {event.get('type')}",
+                            extra={"artifact": (event.get("data") or {}).get("artifact_id")}
+                        )
+                    continue
 
-            # Pass-through for all non-intercepted events
-            yield response
+                # Pass-through for all non-intercepted events
+                yield response
 
             yield {"type": "text", "data": {"text": "✅ LLM code generation finished"}}
 
