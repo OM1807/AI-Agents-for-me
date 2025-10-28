@@ -1,5 +1,5 @@
 """
-Requirements To Code agent workflow implementation - V6.0 ENHANCED.
+Requirements To Code agent workflow implementation - V7.0 WITH ARTIFACTS.
 
 This is the V6.0 implementation with three major improvements.
 
@@ -29,7 +29,7 @@ PREVIOUSLY FIXED (V3.0-ENHANCED):
 11. ✅ Automatic cleanup of testing artifacts
 
 Author: DevOrbit AI Team (Enhanced by Claude)
-Version: 6.0-ENHANCED
+Version: 7.0-ARTIFACTS
 Date: January 2025
 """
 
@@ -43,6 +43,7 @@ import subprocess
 from collections.abc import AsyncIterator
 from pathlib import Path
 from typing import Any
+from datetime import datetime
 
 import httpx
 from loguru import logger
@@ -54,6 +55,7 @@ from app.agents.workflows.factory import register
 from app.integrations.enums import IntegrationProvider
 from app.models.user_agent_session import UserAgentSession
 from app.services.integration_service import IntegrationService
+from app.utils.helpers import try_parse_json_content
 
 
 # ============================================================================
@@ -159,8 +161,16 @@ class RequirementsToCodeWorkflow(AgentWorkflow):
         # ✅ NEW: Store analysis results for contextual action generation
         self.analysis_results: dict[str, Any] = {}
 
+        # ✅ NEW V7.0: Track file operations for artifact emission
+        self._pending_artifact_ops: dict[str, dict[str, Any]] = {}
+
+        # ✅ NEW V7.0: Track artifacts data
+        self.requirements_analysis: dict[str, Any] = {}
+        self.architecture_decisions: dict[str, Any] = {}
+        self.test_results: dict[str, Any] = {}
+
         logger.info(
-            f"Initialized RequirementsToCodeWorkflow (V6.0-ENHANCED)",
+            f"Initialized RequirementsToCodeWorkflow (V7.0-ARTIFACTS)",
             extra={
                 "workspace_dir": str(workspace_dir),
                 "code_dir": str(self.code_dir),
@@ -191,6 +201,46 @@ class RequirementsToCodeWorkflow(AgentWorkflow):
         if self._http_client is not None:
             await self._http_client.aclose()
             self._http_client = None
+
+    async def _read_file_content(self, file_path: str) -> str | None:
+        """
+        Read file content from disk.
+
+        Args:
+            file_path: Path to file
+
+        Returns:
+            File content as string, or None if read fails
+        """
+        try:
+            path_obj = Path(file_path)
+            if path_obj.exists() and path_obj.is_file():
+                return path_obj.read_text()
+        except Exception as e:
+            logger.warning(f"Failed to read file {file_path}: {e}")
+        return None
+
+
+    async def _build_context(self, *, session: UserAgentSession, **extra: Any) -> dict[str, Any]:
+        """
+        Construct rendering context from session data.
+
+        Overrides base class to include code_dir for template rendering.
+        """
+        custom_properties: dict[str, Any] = session.custom_properties or {}
+
+        # ✅ FIX: Pass both workspace_dir and code_dir to templates
+        context = {
+            "mcps": session.mcps or [],
+            "workspace_dir": str(self.workspace_dir),
+            "code_dir": str(self.code_dir),
+            "requirements": self.requirements_cache,
+            **custom_properties,
+            **extra
+        }
+
+        return context
+
 
     # ========================================================================
     # INTEGRATION CREDENTIAL MANAGEMENT
@@ -951,6 +1001,51 @@ Acceptance Criteria:
 
             logger.info("Workspace preparation completed successfully")
 
+        # ✅ NEW V7.0: Create artifacts directory and emit requirements artifact
+        artifacts_dir = self.workspace_dir / "artifacts"
+        artifacts_dir.mkdir(parents=True, exist_ok=True)
+
+        if self.requirements_cache:
+            try:
+                requirements_artifact = {
+                    "artifact_type": "requirements",
+                    "artifact_id": "requirements-analysis",
+                    "timestamp": datetime.now().isoformat(),
+                    "sources": [
+                        {
+                            "type": req.get("provider", "unknown"),
+                            "key": req.get("key"),
+                            "title": req.get("summary", ""),
+                            "acceptance_criteria": req.get("acceptance_criteria", [])
+                        }
+                        for req in self.requirements_cache.values()
+                    ],
+                    "total_sources": len(self.requirements_cache),
+                }
+
+                self.requirements_analysis = requirements_artifact
+                requirements_file = artifacts_dir / "requirements.json"
+                requirements_file.write_text(json.dumps(requirements_artifact, indent=2))
+
+                yield {
+                    "type": "data-requirements",
+                    "data": {
+                        "artifact_type": "requirements",
+                        "actual_file_path": str(requirements_file),
+                        "file_path": "artifacts/requirements.json",
+                        "filename": "requirements.json",
+                        "content_type": "json",
+                        "artifact_id": "requirements-analysis",
+                        "content": requirements_artifact
+                    }
+                }
+
+                logger.info("Requirements artifact emitted")
+
+            except Exception as artifact_error:
+                logger.warning(f"Failed to emit requirements artifact: {artifact_error}")
+
+
         except Exception as e:
             logger.error(f"Failed to prepare workspace: {e}", exc_info=True)
             raise WorkspaceError(f"Workspace preparation failed: {e}") from e
@@ -1584,6 +1679,153 @@ Acceptance Criteria:
     # WORKFLOW PHASE: RUN (Modified for Contextual Actions)
     # ========================================================================
 
+
+    async def _maybe_intercept_artifact_event(
+        self, response: dict[str, Any]
+    ) -> tuple[bool, dict[str, Any] | None]:
+        """Intercept file operation tool events and emit normalized artifact events."""
+        try:
+            rtype = response.get("type")
+
+            if rtype == "tool_call" and response.get("toolName") in {"create_file", "edit_file"}:
+                tool_call_id = str(response.get("toolCallId") or "")
+                args = response.get("args") or {}
+                file_path = str(args.get("file_path") or args.get("path") or "")
+
+                if tool_call_id and file_path:
+                    self._pending_artifact_ops[tool_call_id] = {
+                        "file_path": file_path,
+                        "tool_name": response.get("toolName"),
+                        "content": args.get("content"),
+                    }
+                    return True, None
+
+            if rtype == "tool_result":
+                tool_call_id = str(response.get("toolCallId") or "")
+                pending = self._pending_artifact_ops.pop(tool_call_id, None)
+
+                if pending is not None:
+                    content = pending.get("content")
+
+                    if pending.get("tool_name") == "edit_file" and content is None:
+                        content = await self._read_file_content(pending.get("file_path", ""))
+
+                    artifact = self._extract_artifact_metadata(
+                        file_path=str(pending.get("file_path", "")),
+                        content_str=content,
+                    )
+
+                    if artifact is not None:
+                        evt_type = f"data-{artifact.get('artifact_type')}"
+                        return True, {"type": evt_type, "data": artifact}
+
+                    return True, None
+
+        except Exception as intercept_exc:
+            logger.debug(f"Artifact event interception failed: {intercept_exc}")
+
+        return False, None
+
+
+    def _extract_artifact_metadata(
+        self, *, file_path: str, content_str: Any
+    ) -> dict[str, Any] | None:
+        """Extract artifact metadata from a requirements-to-code file."""
+        normalized_path = self._relativize_to_workspace(file_path, anchor="artifacts/")
+
+        if not normalized_path.startswith("artifacts/"):
+            return None
+
+        path_obj = Path(normalized_path)
+        filename = path_obj.name
+        content_type = "json" if filename.endswith(".json") else "md"
+
+        if not filename.endswith(".json"):
+            return None
+
+        parsed_content = try_parse_json_content(content_str)
+        if not parsed_content:
+            logger.warning(f"Failed to parse JSON content from {file_path}")
+            return None
+
+        artifact_type = None
+        artifact_id = None
+
+        if filename == "index.json":
+            artifact_type = "index"
+            artifact_id = parsed_content.get("generation_id", "generation-summary")
+        elif filename == "requirements.json":
+            artifact_type = "requirements"
+            artifact_id = "requirements-analysis"
+        elif filename == "architecture.json":
+            artifact_type = "architecture"
+            artifact_id = "architecture-decisions"
+        elif filename == "testing.json":
+            artifact_type = "testing"
+            artifact_id = "test-results"
+        elif filename == "actions.json":
+            artifact_type = "actions"
+            artifact_id = "contextual-actions"
+        else:
+            return None
+
+        return {
+            "artifact_type": artifact_type,
+            "actual_file_path": file_path,
+            "file_path": normalized_path,
+            "filename": filename,
+            "content_type": content_type,
+            "artifact_id": artifact_id,
+            "content": parsed_content,
+        }
+
+
+    def _detect_tech_stack(self) -> dict[str, str]:
+        """Detect technology stack from generated files."""
+        tech_stack = {}
+
+        if (self.code_dir / "requirements.txt").exists() or (self.code_dir / "pyproject.toml").exists():
+            tech_stack["language"] = "Python"
+            if (self.code_dir / "app" / "main.py").exists():
+                tech_stack["framework"] = "FastAPI"
+            elif list(self.code_dir.glob("**/manage.py")):
+                tech_stack["framework"] = "Django"
+        elif (self.code_dir / "package.json").exists():
+            tech_stack["language"] = "JavaScript/TypeScript"
+        elif (self.code_dir / "pom.xml").exists():
+            tech_stack["language"] = "Java"
+            tech_stack["framework"] = "Spring Boot"
+        elif (self.code_dir / "go.mod").exists():
+            tech_stack["language"] = "Go"
+        elif (self.code_dir / "Cargo.toml").exists():
+            tech_stack["language"] = "Rust"
+
+        if list(self.code_dir.rglob("**/pytest.ini")):
+            tech_stack["testing"] = "pytest"
+
+        return tech_stack
+
+
+    def _count_total_lines(self) -> int:
+        """Count total lines of code in generated files."""
+        total_lines = 0
+        code_extensions = {".py", ".js", ".ts", ".jsx", ".tsx", ".java", ".go", ".rs"}
+
+        try:
+            for file_path in self.code_dir.rglob("*"):
+                if file_path.is_file() and file_path.suffix in code_extensions:
+                    if any(exclude in str(file_path) for exclude in ["node_modules", "__pycache__"]):
+                        continue
+                    try:
+                        total_lines += len(file_path.read_text().splitlines())
+                    except:
+                        pass
+        except Exception as e:
+            logger.warning(f"Failed to count lines: {e}")
+
+        return total_lines
+
+
     async def run(
         self, *, session: UserAgentSession, messages: list[dict[str, Any]]
     ) -> AsyncIterator[dict[str, Any]]:
@@ -1610,7 +1852,7 @@ Acceptance Criteria:
         """
         try:
             logger.info(
-                f"Starting Requirements-to-Code workflow (V6.0-ENHANCED)",
+                f"Starting Requirements-to-Code workflow (V7.0-ARTIFACTS)",
                 extra={"session_id": str(session.id)}
             )
 
@@ -1676,7 +1918,20 @@ Acceptance Criteria:
             yield {"type": "text", "data": {"text": "🤖 Generating code via LLM..."}}
 
             async for response in self.orchestrator.run(messages, system_prompt=system_prompt):
-                yield response
+            # ✅ NEW V7.0: Intercept artifact events
+            handled, event = await self._maybe_intercept_artifact_event(response)
+
+            if handled:
+                if event is not None:
+                    yield event
+                    logger.info(
+                        f"Artifact event emitted: {event.get('type')}",
+                        extra={"artifact": (event.get("data") or {}).get("artifact_id")}
+                    )
+                continue
+
+            # Pass-through for all non-intercepted events
+            yield response
 
             yield {"type": "text", "data": {"text": "✅ LLM code generation finished"}}
 
@@ -2366,7 +2621,7 @@ Acceptance Criteria:
             GitOperationError: If git operations fail
             GitHubAPIError: If GitHub operations fail
         """
-        logger.info("Finalizing Requirements-to-Code workflow (V6.0-ENHANCED)")
+        logger.info("Finalizing Requirements-to-Code workflow (V7.0-ARTIFACTS)")
 
         properties = session.custom_properties or {}
         output_config = properties.get("output_config", {})
@@ -2529,6 +2784,51 @@ Acceptance Criteria:
                 )
             },
         }
+
+        # ✅ NEW V7.0: Emit index artifact with generation summary
+        try:
+            artifacts_dir = self.workspace_dir / "artifacts"
+            artifacts_dir.mkdir(parents=True, exist_ok=True)
+
+            self._scan_generated_files()
+            tech_stack = self._detect_tech_stack()
+
+            index_artifact = {
+                "artifact_type": "index",
+                "generation_id": f"GEN-{datetime.now().strftime('%Y%m%d-%H%M%S')}",
+                "artifact_id": "generation-summary",
+                "timestamp": datetime.now().isoformat(),
+                "project_name": session.custom_properties.get("project_name", "Generated Project"),
+                "mode": session.custom_properties.get("output_config", {}).get("type", "workspace"),
+                "tech_stack": tech_stack,
+                "files_generated": len(self.generated_files),
+                "total_lines_of_code": self._count_total_lines(),
+                "test_coverage": self.test_results.get("summary", {}).get("coverage", "N/A") if self.test_results else "N/A",
+                "status": "completed",
+                "output_location": str(self.code_dir)
+            }
+
+            index_file = artifacts_dir / "index.json"
+            index_file.write_text(json.dumps(index_artifact, indent=2))
+
+            yield {
+                "type": "data-index",
+                "data": {
+                    "artifact_type": "index",
+                    "actual_file_path": str(index_file),
+                    "file_path": "artifacts/index.json",
+                    "filename": "index.json",
+                    "content_type": "json",
+                    "artifact_id": "generation-summary",
+                    "content": index_artifact
+                }
+            }
+
+            logger.info("Index artifact emitted")
+
+        except Exception as index_error:
+            logger.warning(f"Failed to emit index artifact: {index_error}")
+
         yield {"type": "text", "data": {"text": f"Location: `{self.code_dir}`"}}
         logger.info(f"Finalization complete: Files in workspace {self.code_dir}")
 
@@ -3706,5 +4006,5 @@ Acceptance Criteria:
 
 
 # ============================================================================
-# END OF V6.0 ENHANCED IMPLEMENTATION
+# END OF V7.0 WITH ARTIFACTS IMPLEMENTATION
 # ============================================================================
