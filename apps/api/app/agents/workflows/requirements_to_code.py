@@ -913,6 +913,38 @@ Acceptance Criteria:
     # ========================================================================
     # WORKFLOW PHASE: PREPARE
     # ========================================================================
+    async def prepare(
+        self, *, session: UserAgentSession, messages: list[dict[str, Any]]
+    ) -> AsyncIterator[dict[str, Any]]:
+        """
+        Prepare workspace for requirements-to-code workflow.
+
+        This method satisfies the abstract base class contract and delegates
+        to the internal _prepare_workspace method.
+
+        Steps performed:
+        1. Fetches requirements from configured sources (Jira, Confluence, Notion, PDFs)
+        2. Clones repositories if specified in output_config
+        3. Sets up the workspace environment
+        4. Validates output configuration
+        5. Copies uploaded files to workspace
+
+        Args:
+            session: The user agent session containing configuration
+            messages: List of conversation messages
+
+        Yields:
+            Tool call and result events during preparation
+
+        Raises:
+            WorkspaceError: If workspace preparation fails
+            RequirementsFetchError: If requirements cannot be fetched
+            GitOperationError: If repository cloning fails
+        """
+        # Delegate to internal preparation method
+        async for event in self._prepare_workspace(session, messages):
+            yield event
+
 
     async def _prepare_workspace(
         self, session: UserAgentSession, messages: list[dict]
